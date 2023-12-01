@@ -56,3 +56,4 @@ task_registry.register( "svan_m2_rough", LeggedRobot, SvanM2RoughCfg(), SvanM2Ro
 task_registry.register( "svan_m2_flat", LeggedRobot, SvanM2FlatCfg(), SvanM2FlatCfgPPO() )
 task_registry.register( "svan_m1_flat", LeggedRobot, SvanM1FlatCfg(), SvanM1FlatCfgPPO() )
 
+print("Task Registry Called")
