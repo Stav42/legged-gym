@@ -15,10 +15,8 @@ class TaskRegistry():
     def __init__(self):
         self.train_cfgs = {}
 
-    def make_alg_runner(self, name=None, args=None, log_root="default") -> OnPolicyRunner:
+    def make_alg_runner(self, name=None, log_root="default") -> OnPolicyRunner:
         # if no args passed get command line arguments
-        if args is None:
-            args = get_args()
 
         log_dir = "./"
         

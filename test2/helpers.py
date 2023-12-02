@@ -127,6 +127,7 @@ def get_args():
     args = gymutil.parse_arguments(
         description="RL Policy",
         custom_parameters=custom_parameters)
+    print(args)
 
     # name allignment
     args.sim_device_id = args.compute_device_id

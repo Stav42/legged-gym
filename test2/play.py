@@ -6,7 +6,6 @@ from collections import deque
 import statistics
 
 import os
-from helpers import  get_args
 from task_registry import task_registry
 
 from rsl_rl.algorithms import PPO
@@ -62,10 +61,8 @@ class OnPolicyRunner:
 
 
 
-def make_alg_runner(name=None, args=None, log_root="default") -> OnPolicyRunner:
+def make_alg_runner(name=None, log_root="default") -> OnPolicyRunner:
     # if no args passed get command line arguments
-    if args is None:
-        args = get_args()
 
     log_dir = "./"
 
@@ -75,15 +72,15 @@ def make_alg_runner(name=None, args=None, log_root="default") -> OnPolicyRunner:
       'runner': {'algorithm_class_name': 'PPO', 'checkpoint': -1, 'experiment_name': 'Flat_svan_m1', 'load_run': -1, 'max_iterations': 1500, 'num_steps_per_env': 24, \
       'policy_class_name': 'ActorCritic', 'resume': True, 'resume_path': None, 'run_name': '', 'save_interval': 50}, 'runner_class_name': 'OnPolicyRunner', 'seed': 1}
 
-    runner = OnPolicyRunner(train_cfg_dict, log_dir, device=args.rl_device)
+    runner = OnPolicyRunner(train_cfg_dict, log_dir, device="cpu")
     resume = True
     if resume:
         resume_path = './model_0.pt'
         runner.load(resume_path)
     return runner
 
-def play(args):
-    ppo_runner = make_alg_runner(name=args.task, args=args)
+def play():
+    ppo_runner = make_alg_runner(name="svan_m1_flat")
     policy = ppo_runner.get_inference_policy(device='cpu')
     obs = torch.ones((48, 1))
     obs = torch.t(obs)
@@ -92,5 +89,4 @@ def play(args):
 
 
 if __name__ == '__main__':
-    args = get_args()
-    play(args)
+    play()
