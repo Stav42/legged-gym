@@ -84,6 +84,8 @@ class LeggedRobot(BaseTask):
         """
         clip_actions = self.cfg.normalization.clip_actions
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
+        # print("Action: ", actions)
+        # print("Clip_action is: ", clip_actions)
         # step physics and render each frame
         self.render()
         for _ in range(self.cfg.control.decimation):
@@ -94,6 +96,8 @@ class LeggedRobot(BaseTask):
                 self.gym.fetch_results(self.sim, True)
             self.gym.refresh_dof_state_tensor(self.sim)
         self.post_physics_step()
+
+        # print("DOF Position for joint: ", self.dof_pos)
 
         # return clipped obs, clipped states (None), rewards, dones and infos
         clip_obs = self.cfg.normalization.clip_observations
@@ -209,6 +213,8 @@ class LeggedRobot(BaseTask):
     def compute_observations(self):
         """ Computes observations
         """
+        # self.commands[:, :3] = 0
+        # self.commands[:, 1] = 0.5
         self.obs_buf = torch.cat((  self.base_lin_vel * self.obs_scales.lin_vel,
                                     self.base_ang_vel  * self.obs_scales.ang_vel,
                                     self.projected_gravity,
@@ -218,6 +224,16 @@ class LeggedRobot(BaseTask):
                                     self.actions
                                     ),dim=-1)
         
+        # print("Observations: \n")
+        # print("Default Pose DOF: ", self.default_dof_pos)
+        # print("Base Linear Velocity: ", self.base_lin_vel * self.obs_scales.lin_vel)
+        # print("Base Angular Velocity: ", self.base_ang_vel * self.obs_scales.ang_vel)
+        # print("Projected Gravity: ", self.projected_gravity)
+        # print("Commands: ", self.commands[:, :3] * self.commands_scale)
+        # print("DOF Pose Delta: ", (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)
+        # print("DOF Velocity: ", self.dof_vel * self.obs_scales.dof_vel)
+        # print("Actions: ", self.actions)
+
         # add perceptive inputs if not blind
         if self.cfg.terrain.measure_heights:
             heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements
@@ -375,7 +391,8 @@ class LeggedRobot(BaseTask):
         else:
             raise NameError(f"Unknown controller type: {control_type}")
 
-        
+        # print("Action Data:", actions)
+        # print("Commanded Position: ", actions_scaled + self.default_dof_pos)
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
 
     def _reset_dofs(self, env_ids):
@@ -526,6 +543,9 @@ class LeggedRobot(BaseTask):
             self.height_points = self._init_height_points()
         self.measured_heights = 0
 
+        # print("Observation Scaling: ", self.obs_scales.lin_vel)
+        
+
         # joint positions offsets and PD gains
         self.default_dof_pos = torch.zeros(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         for i in range(self.num_dofs):
@@ -533,6 +553,7 @@ class LeggedRobot(BaseTask):
             angle = self.cfg.init_state.default_joint_angles[name]
             self.default_dof_pos[i] = angle
             found = False
+            # print("Name of Joint: ", name)
             for dof_name in self.cfg.control.stiffness.keys():
                 if dof_name in name:
                     self.p_gains[i] = self.cfg.control.stiffness[dof_name]
@@ -733,7 +754,7 @@ class LeggedRobot(BaseTask):
     def _parse_cfg(self, cfg):
         self.dt = self.cfg.control.decimation * self.sim_params.dt
         self.obs_scales = self.cfg.normalization.obs_scales
-        print("Observation Scales: ", self.obs_scales)
+        # print("Observation Scales: ", self.obs_scales)
         self.reward_scales = class_to_dict(self.cfg.rewards.scales)
         self.command_ranges = class_to_dict(self.cfg.commands.ranges)
         if self.cfg.terrain.mesh_type not in ['heightfield', 'trimesh']:

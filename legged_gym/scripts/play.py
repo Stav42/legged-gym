@@ -34,10 +34,29 @@ import os
 import isaacgym
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
+from shvan_msgs.msg import float_vec
 
 import numpy as np
 import torch
 
+import matplotlib.pyplot as plt
+
+plt.ion()
+fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, figsize=(20, 16))
+axes = [ax1, ax2, ax3, ax4, ax5, ax6]
+# line, = ax.plot([], [], 'r-')  # Red line plot
+lines_lin_vel = [ax1.plot([], [], label=f'Base Linear Velocity {i+1}')[0] for i in range(3)]  # Initialize 5 line plots
+lines_ang_vel = [ax2.plot([], [], label=f'Base Angular Velocity {i+1}')[0] for i in range(3)]  # Initialize 5 line plots
+lines_command = [ax3.plot([], [], label=f'Command {i+1}')[0] for i in range(3)]  # Initialize 5 line plots
+lines_joint1 = [ax4.plot([], [], label=f'Joint Position {i+1}')[0] for i in range(6)]  # Initialize 5 line plots
+lines_joint2 = [ax5.plot([], [], label=f'Joint Position {6+i+1}')[0] for i in range(6)]  # Initialize 5 line plots
+lines_target_position = [ax6.plot([], [], label=f'Target Joint Position {i+1}')[0] for i in range(6)]  # Initialize 5 line plots
+lines = [lines_lin_vel, lines_ang_vel, lines_command, lines_joint1, lines_joint2, lines_target_position]
+
+for ax in axes:
+    ax.legend()
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-2, 1.5)
 
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
@@ -73,11 +92,58 @@ def play(args):
     camera_vel = np.array([1., 1., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
+    plot = False
+
+    obs_ind = [[0, 1, 2], [3, 4, 5], [9, 10, 11], [12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23], [36, 37, 38, 39, 40, 41]]
 
     for i in range(10*int(env.max_episode_length)):
         actions = policy(obs.detach())
-        print("Observation: ", obs.detach())
         obs, _, rews, dones, infos = env.step(actions.detach())
+        action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
+        action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
+        obs_list = [float(act) for act in obs.detach()[0, :]]
+        print("Observed Delta P: ", obs_list[12:24])
+        print("Action (Scaled) input: ", action_list[0])
+        print("Observation action_scaled: ", obs_list[36])
+        x_data = np.append(lines_target_position[0].get_xdata(), i)
+        x_data_clipped = x_data[-100:]
+        y_data = np.append(lines_target_position[0].get_ydata(), action_list[0])
+        y_data_clipped = y_data[-100:]
+        lines_target_position[0].set_xdata(x_data_clipped)
+        lines_target_position[0].set_ydata(y_data_clipped)
+        y_data = np.append(lines_target_position[1].get_ydata(), obs_list[36])
+        y_data_clipped = y_data[-100:]
+        lines_target_position[1].set_xdata(x_data_clipped)
+        lines_target_position[1].set_ydata(y_data_clipped)
+        axes[5].set_xlim(np.min(x_data_clipped), np.max(x_data_clipped))
+        axes[5].relim()
+        axes[5].autoscale_view()
+        plt.pause(0.01)
+        plt.show()
+        if plot:
+            for index, line in enumerate(lines):
+                for ind in range(len(obs_ind[index])):
+                    x_data = np.append(line[ind].get_xdata(), i)
+                    x_data_clipped = x_data[-100:]
+                    if index == 5:
+                        y_data = np.append(line[ind].get_ydata(), action_list[ind])
+                    else:
+                        y_data = np.append(line[ind].get_ydata(), obs_list[obs_ind[index][ind]])
+                    y_data_clipped = y_data[-100:]
+
+                    line[ind].set_xdata(x_data_clipped)
+                    line[ind].set_ydata(y_data_clipped)
+
+                axes[index].set_xlim(np.min(x_data_clipped), np.max(x_data_clipped))
+                axes[index].relim()
+                axes[index].autoscale_view()
+
+            plt.pause(0.01)
+            plt.show()
+
+        # action_msg = float_vec()
+        # action_msg.at = action_tmp
+
         if RECORD_FRAMES:
             if i % 2:
                 filename = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'frames', f"{img_idx}.png")
@@ -87,25 +153,6 @@ def play(args):
             camera_position += camera_vel * env.dt
             env.set_camera(camera_position, camera_position + camera_direction)
 
-        if i < stop_state_log:
-            logger.log_states(
-                {
-                    'dof_pos_target': actions[robot_index, joint_index].item() * env.cfg.control.action_scale,
-                    'dof_pos': env.dof_pos[robot_index, joint_index].item(),
-                    'dof_vel': env.dof_vel[robot_index, joint_index].item(),
-                    'dof_torque': env.torques[robot_index, joint_index].item(),
-                    'command_x': env.commands[robot_index, 0].item(),
-                    'command_y': env.commands[robot_index, 1].item(),
-                    'command_yaw': env.commands[robot_index, 2].item(),
-                    'base_vel_x': env.base_lin_vel[robot_index, 0].item(),
-                    'base_vel_y': env.base_lin_vel[robot_index, 1].item(),
-                    'base_vel_z': env.base_lin_vel[robot_index, 2].item(),
-                    'base_vel_yaw': env.base_ang_vel[robot_index, 2].item(),
-                    'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy()
-                }
-            )
-        elif i==stop_state_log:
-            logger.plot_states()
         if  0 < i < stop_rew_log:
             if infos["episode"]:
                 num_episodes = torch.sum(env.reset_buf).item()
@@ -113,6 +160,7 @@ def play(args):
                     logger.log_rewards(infos["episode"], num_episodes)
         elif i==stop_rew_log:
             logger.print_rewards()
+        
 
 if __name__ == '__main__':
     EXPORT_POLICY = True
@@ -120,3 +168,4 @@ if __name__ == '__main__':
     MOVE_CAMERA = False
     args = get_args()
     play(args)
+    plt.ioff()

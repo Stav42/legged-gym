@@ -543,7 +543,7 @@
     <child
       link="rr_abd_l" />
     <axis
-      xyz="1 0 0" />
+      xyz="-1 0 0" />
     <limit effort="20" lower="-0.302851455917" upper="0.302851455917" velocity="52.4"/>
     <dynamics damping="0" friction="0"/>
   </joint>
@@ -598,7 +598,7 @@
     <child
       link="rr_hip_l" />
     <axis
-      xyz="0 1 0" />
+      xyz="0 -1 0" />
     <limit effort="55" lower="-1.0471975512" upper="4.18879020479" velocity="28.6"/>
     <dynamics damping="0" friction="0"/>
   </joint>

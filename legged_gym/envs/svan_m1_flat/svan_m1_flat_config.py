@@ -9,7 +9,7 @@
 #
 # 2. Redistributions in binary form must reproduce the above copyright notice,
 # this list of conditions and the following disclaimer in the documentation
-# and/or other materials provided with the distribution.
+# this list of conditions and the following disclaimer in the documentationribution.
 #
 # 3. Neither the name of the copyright holder nor the names of its
 # contributors may be used to endorse or promote products derived FRom
@@ -19,7 +19,7 @@
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# FOR ANY DIRE, INCIDENTA
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
@@ -44,7 +44,7 @@ class SvanM1FlatCfg( LeggedRobotCfg ):
 
             'fr_hip_j':  0.8,   # [rad]
             'fl_hip_j':  1., # [rad]
-            'rr_hip_j':  0.8,   # [rad]
+            'rr_hip_j':  -0.8,   # [rad]
             'rl_hip_j':  1., # [rad]
                         
             'fr_knee_j': -1.5,  # [rad]
@@ -68,10 +68,12 @@ class SvanM1FlatCfg( LeggedRobotCfg ):
         # }     # [N*m*s/rad]
 
         
-        stiffness = {"j": 3.5}
+        # stiffness = {"abd": 4, "hip": 2, "knee": 1}
+
+        stiffness = {"j": 20}
         damping = {'j': 0.5} 
         # action scale: target angle = actionScale * action + defaultAngle
-        action_scale = 0.25
+        action_scale = 0.2
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 

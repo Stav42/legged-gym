@@ -82,7 +82,7 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
         # }     # [N*m*s/rad]
 
         
-        stiffness = {"joint": 3.5}
+        stiffness = {"joint": 5}
         damping = {'joint': 0.5} 
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.25
