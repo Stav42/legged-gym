@@ -82,10 +82,10 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
         # }     # [N*m*s/rad]
 
         
-        stiffness = {"joint": 5}
+        stiffness = {"joint": 12}
         damping = {'joint': 0.5} 
         # action scale: target angle = actionScale * action + defaultAngle
-        action_scale = 0.25
+        action_scale = 0.08
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 
