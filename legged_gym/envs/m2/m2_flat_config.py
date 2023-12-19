@@ -30,7 +30,7 @@
 
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
-class SvanM2FlatCfg( LeggedRobotCfg ):
+class M2FlatCfg( LeggedRobotCfg ):
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.6] # x,y,z [m]
         # default_joint_angles = { # = target angles [rad] when action = 0.0
@@ -82,16 +82,16 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
         # }     # [N*m*s/rad]
 
         
-        stiffness = {"joint": 30}
+        stiffness = {"joint": 38}
         damping = {'joint': 0.5} 
         # action scale: target angle = actionScale * action + defaultAngle
-        action_scale = 0.25
+        action_scale = 0.20
         # decimation: Number of control action updates @ sim DT per policy DT
         decimation = 4
 
     class asset( LeggedRobotCfg.asset ):
-        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/svan_m2/urdf/svan_urdf_package.urdf'
-        name = "svan_m2"
+        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/m2/urdf/SVANM2_URDF.urdf'
+        name = "m2"
         foot_name = "foot"
         fix_base_link = False
         penalize_contacts_on = ["thigh", "calf"]
@@ -107,12 +107,12 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
             torques = -0.0002
             dof_pos_limits = -10.0
 
-class SvanM2FlatCfgPPO( LeggedRobotCfgPPO ):
+class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.01
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
-        experiment_name = 'Flat_svan_m2'
+        experiment_name = 'Flat_m2'
 
 
 ## Checking ssh cases

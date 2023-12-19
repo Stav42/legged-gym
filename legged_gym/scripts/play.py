@@ -102,24 +102,24 @@ def play(args):
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]
-        print("Observed Delta P: ", obs_list[12:24])
-        print("Action (Scaled) input: ", action_list[0])
-        print("Observation action_scaled: ", obs_list[36])
-        x_data = np.append(lines_target_position[0].get_xdata(), i)
-        x_data_clipped = x_data[-100:]
-        y_data = np.append(lines_target_position[0].get_ydata(), action_list[0])
-        y_data_clipped = y_data[-100:]
-        lines_target_position[0].set_xdata(x_data_clipped)
-        lines_target_position[0].set_ydata(y_data_clipped)
-        y_data = np.append(lines_target_position[1].get_ydata(), obs_list[36])
-        y_data_clipped = y_data[-100:]
-        lines_target_position[1].set_xdata(x_data_clipped)
-        lines_target_position[1].set_ydata(y_data_clipped)
-        axes[5].set_xlim(np.min(x_data_clipped), np.max(x_data_clipped))
-        axes[5].relim()
-        axes[5].autoscale_view()
-        plt.pause(0.01)
-        plt.show()
+        # print("Observed Delta P: ", obs_list[12:24])
+        # print("Action (Scaled) input: ", action_list[0])
+        # print("Observation action_scaled: ", obs_list[36])
+        # x_data = np.append(lines_target_position[0].get_xdata(), i)
+        # x_data_clipped = x_data[-100:]
+        # y_data = np.append(lines_target_position[0].get_ydata(), action_list[0])
+        # y_data_clipped = y_data[-100:]
+        # lines_target_position[0].set_xdata(x_data_clipped)
+        # lines_target_position[0].set_ydata(y_data_clipped)
+        # y_data = np.append(lines_target_position[1].get_ydata(), obs_list[36])
+        # y_data_clipped = y_data[-100:]
+        # lines_target_position[1].set_xdata(x_data_clipped)
+        # lines_target_position[1].set_ydata(y_data_clipped)
+        # axes[5].set_xlim(np.min(x_data_clipped), np.max(x_data_clipped))
+        # axes[5].relim()
+        # axes[5].autoscale_view()
+        # plt.pause(0.01)
+        # plt.show()
         if plot:
             for index, line in enumerate(lines):
                 for ind in range(len(obs_ind[index])):

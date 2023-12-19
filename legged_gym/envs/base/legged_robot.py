@@ -391,6 +391,7 @@ class LeggedRobot(BaseTask):
         else:
             raise NameError(f"Unknown controller type: {control_type}")
 
+        # print("Default Position: ", self.default_dof_pos)
         # print("Action Data:", actions)
         # print("Commanded Position: ", actions_scaled + self.default_dof_pos)
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
