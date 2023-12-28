@@ -85,8 +85,6 @@ class LeggedRobot(BaseTask):
         """
         clip_actions = self.cfg.normalization.clip_actions
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
-        # print("Action: ", actions)
-        # print("Clip_action is: ", clip_actions)
         # step physics and render each frame
         self.render()
         for _ in range(self.cfg.control.decimation):
@@ -204,6 +202,7 @@ class LeggedRobot(BaseTask):
             [Optional] calls self._update_terrain_curriculum(env_ids), self.update_command_curriculum(env_ids) and
             Logs episode info
             Resets some buffers
+            Add randomizations in each reset
 
         Args:
             env_ids (list[int]): List of environment ids which must be reset
