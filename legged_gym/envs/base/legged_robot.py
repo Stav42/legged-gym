@@ -75,6 +75,7 @@ class LeggedRobot(BaseTask):
         self._init_buffers()
         self._prepare_reward_function()
         self.init_done = True
+        self.perturb_envs = 20
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -97,14 +98,50 @@ class LeggedRobot(BaseTask):
             self.gym.refresh_dof_state_tensor(self.sim)
         self.post_physics_step()
 
-        # print("DOF Position for joint: ", self.dof_pos)
-
         # return clipped obs, clipped states (None), rewards, dones and infos
         clip_obs = self.cfg.normalization.clip_observations
         self.obs_buf = torch.clip(self.obs_buf, -clip_obs, clip_obs)
         if self.privileged_obs_buf is not None:
             self.privileged_obs_buf = torch.clip(self.privileged_obs_buf, -clip_obs, clip_obs)
         return self.obs_buf, self.privileged_obs_buf, self.rew_buf, self.reset_buf, self.extras
+
+    def apply_perturbation(self, env_perturb, mag):
+        """ Applies perturbation
+            Randomly chosen body of a robot
+            Force of given magnitude applied in a random location in the body part
+        """
+        low = 1, high = 4
+        v1 = np.random.uniform(low, high, self.perturb_envs)
+        low = 1, high = 4
+        v2 = np.random.uniform(low, high, self.perturb_envs)
+        low = 1, high = 4
+        v3 = np.random.uniform(low, high, self.perturb_envs)
+        pos = np.concatenate((v1, v2, v3), axis=0)
+        states = gymtorch.wrap_tensor(gym.acquire_rigid_body_state_tensor(self.sim))
+        rb_positions = states[:, 0:3].view(self.num_envs, self.num_bodies, 3)
+        body_disturb = int(np.random.uniform(0, 16, self.perturb_envs))
+
+        ## Forces to be applied. Force - 3x20
+        low = 0, high = 1
+        v1 = np.random.uniform(low, high, self.perturb_envs)
+        low = 0, high = 1
+        v2 = np.random.uniform(low, high, self.perturb_envs)
+        low = 0, high = 1
+        v3 = np.random.uniform(low, high, self.perturb_envs)
+        force = mag * np.concatenate((v1, v2, v3), axis=0)
+
+        force_ar = np.zeros(self.num_envs, self.num_bodies, 3)
+        force_ar[self.perturb_envs, body_disturb] = force
+        force_pos = rb_positions.clone()
+        force_pos[self.perturb_envs, body_disturb, :] += pos
+
+        gym.apply_rigid_body_force_at_pos_tensors(self.sim, force_ar, force_pos, gymapi.ENV_SPACE)
+
+        for env_index in env_perturb:
+            color = gymapi.Vec3(1.0, 0.0, 0.0)
+            if self.viewer:
+                forces_end = force_pos[self.perturb_envs, body_disturb, :] + 0.02 * force_ar[self.perturb_envs, body_disturb]
+                gymutil.draw_line(force_pos[self.perturb_envs, body_disturb, :], forces_end, color, self.gym, self.viewer, env[env_index])
 
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
@@ -247,6 +284,7 @@ class LeggedRobot(BaseTask):
         """ Creates simulation, terrain and evironments
         """
         self.up_axis_idx = 2 # 2 for z, 1 for y -> adapt gravity accordingly
+        ### Entry Point for perturbations
         self.sim = self.gym.create_sim(self.sim_device_id, self.graphics_device_id, self.physics_engine, self.sim_params)
         mesh_type = self.cfg.terrain.mesh_type
         if mesh_type in ['heightfield', 'trimesh']:
@@ -450,6 +488,7 @@ class LeggedRobot(BaseTask):
         if not self.init_done:
             # don't change on initial reset
             return
+            
         distance = torch.norm(self.root_states[env_ids, :2] - self.env_origins[env_ids, :2], dim=1)
         # robots that walked far enough progress to harder terains
         move_up = distance > self.terrain.env_length / 2
