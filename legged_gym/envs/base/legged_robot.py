@@ -75,7 +75,7 @@ class LeggedRobot(BaseTask):
         self._init_buffers()
         self._prepare_reward_function()
         self.init_done = True
-        self.perturb_envs = 20
+        self.perturb_envs = 10
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -120,12 +120,12 @@ class LeggedRobot(BaseTask):
         states = gymtorch.wrap_tensor(self.gym.acquire_rigid_body_state_tensor(self.sim))
         rb_positions = states[:, 0:3].view(self.num_envs, self.num_bodies, 3)
         body_disturb = np.random.uniform(0, 16, self.perturb_envs).astype(int)
-        print("rb positions shape: ", rb_positions.shape)
-        print("Body Index to be disturbed: ", body_disturb)
-        print("Shape of pos: ", pos.shape)
-        print("Env # to be perturbed: ", self.perturb_envs)
-        print("Envs to be perturbed: ", env_perturb)
-        print("Number of bodies: ", int(self.num_bodies))
+        # print("rb positions shape: ", rb_positions.shape)
+        # print("Body Index to be disturbed: ", body_disturb)
+        # print("Shape of pos: ", pos.shape)
+        # print("Env # to be perturbed: ", self.perturb_envs)
+        # print("Envs to be perturbed: ", env_perturb)
+        # print("Number of bodies: ", int(self.num_bodies))
         ## Forces to be applied. Force - 3x20
         low = 0; high = 1
         v1 = np.random.uniform(low, high, self.perturb_envs)
@@ -134,22 +134,29 @@ class LeggedRobot(BaseTask):
         low = 0; high = 1
         v3 = np.random.uniform(low, high, self.perturb_envs)
         force = mag * np.stack((v1, v2, v3)).T
-        print("force shape: ", force.shape)
+        # print("force shape: ", force.shape)
 
-        force_ar = np.zeros((self.num_envs, int(self.num_bodies), 3))
-        print("Shape of sliced force array: ", force_ar[env_perturb, body_disturb].shape)
-        force_ar[env_perturb, body_disturb] = force
+        force_ar = torch.zeros((self.num_envs, int(self.num_bodies), 3), device=self.device, dtype=torch.float)
+        # print("Shape of sliced force array: ", force_ar[env_perturb, body_disturb, :].shape)
+        force_ar[env_perturb, body_disturb] = torch.tensor(force, device=self.device, dtype=torch.float)
         force_pos = rb_positions.clone()
-        print("Shape of force_array: ", force_ar.shape)
-        # force_pos[self.perturb_envs, body_disturb, :] += torch.tensor(pos, device=self.device)
+        # print("Shape of force_array: ", force_ar.shape)
+        force_pos[env_perturb, body_disturb, :] += torch.tensor(pos, device=self.device)
 
-        # gym.apply_rigid_body_force_at_pos_tensors(self.sim, force_ar, force_pos, gymapi.ENV_SPACE)
+        self.gym.apply_rigid_body_force_at_pos_tensors(self.sim, gymtorch.unwrap_tensor(force_ar), gymtorch.unwrap_tensor(force_pos), gymapi.ENV_SPACE)
 
-        # for env_index in env_perturb:
-        #     color = gymapi.Vec3(1.0, 0.0, 0.0)
-        #     if self.viewer:
-        #         forces_end = force_pos[self.perturb_envs, body_disturb, :] + 0.02 * force_ar[self.perturb_envs, body_disturb]
-        #         gymutil.draw_line(force_pos[self.perturb_envs, body_disturb, :], forces_end, color, self.gym, self.viewer, env[env_index])
+        if self.viewer:
+            # print("Viewer on")
+            force_end = force_pos[env_perturb, body_disturb, :] + 2 * force_ar[env_perturb, body_disturb]
+            color = gymapi.Vec3(1.0, 0.0, 0.0)
+            for index, env_index in enumerate(env_perturb):
+                # print("Shape of force_end: ", force_end.shape)
+                # print("Shape of sliced force_pos: ", force_pos[env_index, body_disturb[index], :].shape)
+                force_pose_vec = force_pos[env_index, body_disturb[index], :]
+                force_pose_vec = gymapi.Vec3(force_pose_vec[0], force_pose_vec[1], force_pose_vec[2])
+                force_end_vec = force_end[index]
+                force_end_vec = gymapi.Vec3(force_end_vec[0], force_end_vec[1], force_end_vec[2])
+                gymutil.draw_line(force_pose_vec, force_end_vec, color, self.gym, self.viewer, self.envs[env_index])
 
     def post_physics_step(self):
         """ check terminations, compute observations and rewards
