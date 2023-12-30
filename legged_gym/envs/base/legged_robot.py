@@ -44,6 +44,7 @@ from typing import Tuple, Dict
 from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs.base.base_task import BaseTask
 from legged_gym.utils.terrain import Terrain
+from legged_gym.utils.svan_terrain import Svan_Terrain
 from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float
 from legged_gym.utils.helpers import class_to_dict
 from .legged_robot_config import LeggedRobotCfg
@@ -67,6 +68,7 @@ class LeggedRobot(BaseTask):
         self.height_samples = None
         self.debug_viz = False
         self.init_done = False
+        self.svan_terrain = False
         self._parse_cfg(self.cfg)
         super().__init__(self.cfg, sim_params, physics_engine, sim_device, headless)
 
@@ -76,6 +78,31 @@ class LeggedRobot(BaseTask):
         self._prepare_reward_function()
         self.init_done = True
         self.perturb_envs = 10
+
+    def _dynamics_level(self, prop, level)
+        
+        #Level 1:
+        if level == 1:
+            prop.friction = np.random.uniform(0.0, 0.3)
+            prop.rolling_friction = np.random.uniform(0.0, 0.3)
+            prop.compliance = np.random.uniform(0, 0.3)
+            prop.torsion_friction = np;random.uniform(0, 0.3)
+
+        #Level 2:
+        if level == 2:
+            prop.friction = np.random.uniform(0.3, 0.6)
+            prop.rolling_friction = np.random.uniform(0.3, 0.6)
+            prop.compliance = np.random.uniform(0.3, 0.6)
+            prop.torsion_friction = np;random.uniform(0.3, 0.6)
+        
+        #Level 3:
+        if level == 3:
+            prop.friction = np.random.uniform(0.6, 1.0)
+            prop.rolling_friction = np.random.uniform(0.6, 1.0)
+            prop.compliance = np.random.uniform(0.6, 1.0)
+            prop.torsion_friction = np;random.uniform(0.6, 1.0)
+
+        return prop
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -210,16 +237,20 @@ class LeggedRobot(BaseTask):
         if len(env_ids) == 0:
             return
         # update curriculum
+        # Map levels to (terrain + randomized dynamics)
         if self.cfg.terrain.curriculum:
             self._update_terrain_curriculum(env_ids)
+            # self._update_svan_terrain_curriculum(env_ids)
         # avoid updating command curriculum at each step since the maximum command is common to all envs
         if self.cfg.commands.curriculum and (self.common_step_counter % self.max_episode_length==0):
             self.update_command_curriculum(env_ids)
         
         # reset robot states
+        # This will mostly stay as it is. Only change the reset origin of the 
+        # new spawn. And set parameters as well
         self._reset_dofs(env_ids)
         self._reset_root_states(env_ids)
-
+        # self._reset_env_dynamics(env_ids)
         self._resample_commands(env_ids)
 
         # reset buffers
@@ -311,6 +342,8 @@ class LeggedRobot(BaseTask):
             self._create_trimesh()
         elif mesh_type is not None:
             raise ValueError("Terrain mesh type not recognised. Allowed types are [None, plane, heightfield, trimesh]")
+        if self.svan_terrain:
+            self.terrain = Svan_Terrain(self.num_envs)
         self._create_envs()
 
     def set_camera(self, position, lookat):
@@ -463,6 +496,23 @@ class LeggedRobot(BaseTask):
         self.gym.set_dof_state_tensor_indexed(self.sim,
                                               gymtorch.unwrap_tensor(self.dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
+
+
+        # Set Friction Properties of restored environments
+        for env_idx in env_ids:
+            count = self.gym.get_actor_rigid_shape_count(self.envs[env_idx], self.actor_handles[env_idx])
+            shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
+            print("Shape Properties Length: ", len(shape_properties))
+            names = self.gym.get_actor_rigid_body_names(self.envs[env_idx], self.actor_handles[env_idx])
+            print("Name of the rigid shapes in the actor: ", names)
+            # print("Shape Properties of the rigid shapes are: ", dir(shape_properties[4]))
+            foot_indices = [4, 8, 12, 16]
+            for index in foot_indices:
+                shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
+                shape_properties[index] = self._dynamics_level(shape_properties[index], self.level[env_idx])
+            self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_properties)
+    
+
     def _reset_root_states(self, env_ids):
         """ Resets ROOT states position and velocities of selected environmments
             Sets base position based on the curriculum
@@ -484,6 +534,33 @@ class LeggedRobot(BaseTask):
         self.gym.set_actor_root_state_tensor_indexed(self.sim,
                                                      gymtorch.unwrap_tensor(self.root_states),
                                                      gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
+
+    def _reset_env_dynamics(self, env_ids):
+        """ Resets dynamic parameters of selected environmments
+            Mass, Inertia parameters randomized in [-min, man] %
+            Min, Max chosen through stochastic sampling
+            Friction, Compliance parameters changed
+            All changed according to level
+        Args:
+            env_ids (List[int]): Environemnt ids
+        """
+        # base position
+        if self.custom_origins:
+            self.root_states[env_ids] = self.base_init_state
+            self.root_states[env_ids, :3] += self.env_origins[env_ids]
+            self.root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=self.device) # xy position within 1m of the center
+        else:
+            self.root_states[env_ids] = self.base_init_state
+            self.root_states[env_ids, :3] += self.env_origins[env_ids]
+        # base velocities
+        self.root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=self.device) # [7:10]: lin vel, [10:13]: ang vel
+        env_ids_int32 = env_ids.to(dtype=torch.int32)
+        self.gym.set_actor_root_state_tensor_indexed(self.sim,
+                                                     gymtorch.unwrap_tensor(self.root_states),
+                                                     gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
+        # Change dynamics
+        # self.
+
 
     def _push_robots(self):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
@@ -514,7 +591,35 @@ class LeggedRobot(BaseTask):
                                                    torch.randint_like(self.terrain_levels[env_ids], self.max_terrain_level),
                                                    torch.clip(self.terrain_levels[env_ids], 0)) # (the minumum level is zero)
         self.env_origins[env_ids] = self.terrain_origins[self.terrain_levels[env_ids], self.terrain_types[env_ids]]
-    
+
+    def _update_svan_terrain_curriculum(self, env_ids):
+        """ Implements the game-inspired curriculum.
+
+        Args:
+            env_ids (List[int]): ids of environments being reset
+        """
+        # Implement Terrain curriculum
+        if not self.init_done:
+            # don't change on initial reset
+            return
+
+        # Decide new level (Make sure to move down if underperforming)
+        distance = torch.norm(self.root_states[env_ids, :2] - self.env_origins[env_ids, :2], dim=1)
+        # robots that walked far enough progress to harder terains
+        move_up = distance > self.terrain.env_length / 2
+        # robots that walked less than half of their required distance go to simpler terrains
+        move_down = (distance < torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.5) * ~move_up
+        self.terrain_levels[env_ids] += 1 * move_up - 1 * move_down
+        # Robots that solve the last level are sent to a random one
+        self.terrain_levels[env_ids] = torch.where(self.terrain_levels[env_ids]>=self.max_terrain_level,
+                                                   torch.randint_like(self.terrain_levels[env_ids], self.max_terrain_level),
+                                                   torch.clip(self.terrain_levels[env_ids], 0)) # (the minumum level is zero)
+        
+        # This stays as it is. 
+        self.env_origins[env_ids] = self.svan_terrain_origins[self.svan_dynamics_levels[env_ids], self.svan_terrain_types[env_ids]]
+
+
+
     def update_command_curriculum(self, env_ids):
         """ Implements a curriculum of increasing commands
 
@@ -744,6 +849,8 @@ class LeggedRobot(BaseTask):
         start_pose.p = gymapi.Vec3(*self.base_init_state[:3])
 
         self._get_env_origins()
+        # self._get_svan_env_origins()
+
         env_lower = gymapi.Vec3(0., 0., 0.)
         env_upper = gymapi.Vec3(0., 0., 0.)
         self.actor_handles = []
@@ -804,6 +911,19 @@ class LeggedRobot(BaseTask):
             self.env_origins[:, 0] = spacing * xx.flatten()[:self.num_envs]
             self.env_origins[:, 1] = spacing * yy.flatten()[:self.num_envs]
             self.env_origins[:, 2] = 0.
+
+    def _get_svan_env_origins(self):
+        """ Sets environment origins. According the level ranked terrain grids
+        """
+
+        ## 2D matrix indexed with [type, dynamics_level] = origin
+        ## The grid is shaped [num_terrains_type, dynamics_level, 3]
+        # self.terrain_origin_mapping = self.terrain.origins
+        self.env_origins = torch.zeros((self.num_envs, 3), device = self.device, dtype = torch.float)
+        ## # env_level_array; Input: level of each environment. Output: terrain map origin num_envs x 3
+        self.env_origins[:] = self.terrain.map_level_to_origin(self.env_level_array)
+        self.env_origins[:, 2] = 0.
+
 
     def _parse_cfg(self, cfg):
         self.dt = self.cfg.control.decimation * self.sim_params.dt
