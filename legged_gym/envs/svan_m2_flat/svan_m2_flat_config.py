@@ -113,7 +113,4 @@ class SvanM2FlatCfgPPO( LeggedRobotCfgPPO ):
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
         experiment_name = 'Flat_svan_m2'
-
-
-## Checking ssh cases
   

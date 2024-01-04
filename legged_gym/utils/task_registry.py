@@ -48,6 +48,7 @@ class TaskRegistry():
         self.train_cfgs = {}
     
     def register(self, name: str, task_class: VecEnv, env_cfg: LeggedRobotCfg, train_cfg: LeggedRobotCfgPPO):
+        # Task Class is legged_robot class with step(), reward(), and reset() functions
         self.task_classes[name] = task_class
         self.env_cfgs[name] = env_cfg
         self.train_cfgs[name] = train_cfg

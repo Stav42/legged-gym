@@ -43,16 +43,24 @@ class Terrain:
         self.type = cfg.mesh_type
         if self.type in ["none", 'plane']:
             return
+        ## Get environment length and width
         self.env_length = cfg.terrain_length
         self.env_width = cfg.terrain_width
+
+        ## Get proportions of terrain grids
         self.proportions = [np.sum(cfg.terrain_proportions[:i+1]) for i in range(len(cfg.terrain_proportions))]
 
+        ## Total number of terrain grids (num_rows * num_cols)
         self.cfg.num_sub_terrains = cfg.num_rows * cfg.num_cols
+
+        ## And environment origin for each sub terrain grid
         self.env_origins = np.zeros((cfg.num_rows, cfg.num_cols, 3))
 
+        ## Width per Environment pixels = Probability relates to the resolution of render
         self.width_per_env_pixels = int(self.env_width / cfg.horizontal_scale)
         self.length_per_env_pixels = int(self.env_length / cfg.horizontal_scale)
 
+        
         self.border = int(cfg.border_size/self.cfg.horizontal_scale)
         self.tot_cols = int(cfg.num_cols * self.width_per_env_pixels) + 2 * self.border
         self.tot_rows = int(cfg.num_rows * self.length_per_env_pixels) + 2 * self.border
