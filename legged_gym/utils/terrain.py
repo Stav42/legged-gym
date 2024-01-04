@@ -43,7 +43,7 @@ class Terrain:
         self.type = cfg.mesh_type
         if self.type in ["none", 'plane']:
             return
-        ## Get environment length and width
+        ## length and width of each sub terrain
         self.env_length = cfg.terrain_length
         self.env_width = cfg.terrain_width
 
@@ -56,15 +56,18 @@ class Terrain:
         ## And environment origin for each sub terrain grid
         self.env_origins = np.zeros((cfg.num_rows, cfg.num_cols, 3))
 
-        ## Width per Environment pixels = Probability relates to the resolution of render
+        ## Number of pixels per terrain width/length
         self.width_per_env_pixels = int(self.env_width / cfg.horizontal_scale)
         self.length_per_env_pixels = int(self.env_length / cfg.horizontal_scale)
 
-        
+        ## Some pixels for the border around terrain
         self.border = int(cfg.border_size/self.cfg.horizontal_scale)
+
+        ## Total columns = Num of sub terrains arranged as columns * pixel number per subterrain width + 2 * pixels for border 
         self.tot_cols = int(cfg.num_cols * self.width_per_env_pixels) + 2 * self.border
         self.tot_rows = int(cfg.num_rows * self.length_per_env_pixels) + 2 * self.border
 
+        ## Describe the heightfield for each of those pixel
         self.height_field_raw = np.zeros((self.tot_rows , self.tot_cols), dtype=np.int16)
         if cfg.curriculum:
             self.curiculum()
