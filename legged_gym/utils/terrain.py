@@ -71,6 +71,8 @@ class Terrain:
         self.height_field_raw = np.zeros((self.tot_rows , self.tot_cols), dtype=np.int16)
         if cfg.curriculum:
             self.curiculum()
+        elif cfg.svan_curriculum:
+            self.svan_curriculum()
         elif cfg.selected:
             self.selected_terrain()
         else:    
@@ -100,6 +102,12 @@ class Terrain:
                 choice = j / self.cfg.num_cols + 0.001
 
                 terrain = self.make_terrain(choice, difficulty)
+                self.add_terrain_to_map(terrain, i, j)
+
+    def svan_curriculum(self):
+        for j in range(self.cfg.num_cols):
+            for i in range(self.cfg.num_rows):
+                terrain = self.make_svan_terrain(j)
                 self.add_terrain_to_map(terrain, i, j)
 
     def selected_terrain(self):
@@ -152,6 +160,23 @@ class Terrain:
             gap_terrain(terrain, gap_size=gap_size, platform_size=3.)
         else:
             pit_terrain(terrain, depth=pit_depth, platform_size=4.)
+        
+        return terrain
+
+    def make_svan_terrain(self, col):
+        terrain = terrain_utils.SubTerrain(   "terrain",
+                                width=self.width_per_env_pixels,
+                                length=self.width_per_env_pixels,
+                                vertical_scale=self.cfg.vertical_scale,
+                                horizontal_scale=self.cfg.horizontal_scale)
+       
+        if col == 0:
+            terrain_utils.random_uniform_terrain(terrain, min_height=-0.05, max_height=0.05, step=0.005, downsampled_scale=0.2)
+        elif col == 1:
+            terrain_utils.spherical_indentation_terrain(terrain)
+        elif col == 2:
+            terrain_utils.wave_terrain(terrain, amplitude = 0.05)
+
         
         return terrain
 

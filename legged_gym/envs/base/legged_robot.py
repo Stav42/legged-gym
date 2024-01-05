@@ -344,6 +344,8 @@ class LeggedRobot(BaseTask):
             raise ValueError("Terrain mesh type not recognised. Allowed types are [None, plane, heightfield, trimesh]")
         if self.svan_terrain:
             self.terrain = Svan_Terrain(self.num_envs)
+
+        print("Environment Origins Shape: ", self.terrain.env_origins.shape)
         self._create_envs()
 
     def set_camera(self, position, lookat):
