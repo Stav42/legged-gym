@@ -79,7 +79,7 @@ class LeggedRobot(BaseTask):
         self.init_done = True
         self.perturb_envs = 10
 
-    def _dynamics_level(self, prop, level)
+    def _dynamics_level(self, prop, level):
         
         #Level 1:
         if level == 1:
@@ -509,7 +509,7 @@ class LeggedRobot(BaseTask):
             foot_indices = [4, 8, 12, 16]
             for index in foot_indices:
                 shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-                shape_properties[index] = self._dynamics_level(shape_properties[index], self.level[env_idx])
+                # shape_properties[index] = self._dynamics_level(shape_properties[index], self.level[env_idx])
             self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_properties)
     
 
