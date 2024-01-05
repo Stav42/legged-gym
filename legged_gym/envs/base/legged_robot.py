@@ -238,6 +238,8 @@ class LeggedRobot(BaseTask):
             return
         # update curriculum
         # Map levels to (terrain + randomized dynamics)
+
+        ## Update terrain Curriculum redefines the origin of the environments
         if self.cfg.terrain.curriculum:
             self._update_terrain_curriculum(env_ids)
             # self._update_svan_terrain_curriculum(env_ids)
@@ -250,7 +252,7 @@ class LeggedRobot(BaseTask):
         # new spawn. And set parameters as well
         self._reset_dofs(env_ids)
         self._reset_root_states(env_ids)
-        # self._reset_env_dynamics(env_ids)
+        self._reset_env_dynamics(env_ids)
         self._resample_commands(env_ids)
 
         # reset buffers
@@ -499,22 +501,6 @@ class LeggedRobot(BaseTask):
                                               gymtorch.unwrap_tensor(self.dof_state),
                                               gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
 
-
-        # Set Friction Properties of restored environments
-        for env_idx in env_ids:
-            count = self.gym.get_actor_rigid_shape_count(self.envs[env_idx], self.actor_handles[env_idx])
-            shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            print("Shape Properties Length: ", len(shape_properties))
-            names = self.gym.get_actor_rigid_body_names(self.envs[env_idx], self.actor_handles[env_idx])
-            print("Name of the rigid shapes in the actor: ", names)
-            # print("Shape Properties of the rigid shapes are: ", dir(shape_properties[4]))
-            foot_indices = [4, 8, 12, 16]
-            for index in foot_indices:
-                shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-                # shape_properties[index] = self._dynamics_level(shape_properties[index], self.level[env_idx])
-            self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_properties)
-    
-
     def _reset_root_states(self, env_ids):
         """ Resets ROOT states position and velocities of selected environmments
             Sets base position based on the curriculum
@@ -546,23 +532,30 @@ class LeggedRobot(BaseTask):
         Args:
             env_ids (List[int]): Environemnt ids
         """
-        # base position
-        if self.custom_origins:
-            self.root_states[env_ids] = self.base_init_state
-            self.root_states[env_ids, :3] += self.env_origins[env_ids]
-            self.root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=self.device) # xy position within 1m of the center
-        else:
-            self.root_states[env_ids] = self.base_init_state
-            self.root_states[env_ids, :3] += self.env_origins[env_ids]
-        # base velocities
-        self.root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=self.device) # [7:10]: lin vel, [10:13]: ang vel
-        env_ids_int32 = env_ids.to(dtype=torch.int32)
-        self.gym.set_actor_root_state_tensor_indexed(self.sim,
-                                                     gymtorch.unwrap_tensor(self.root_states),
-                                                     gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
-        # Change dynamics
-        # self.
+        # Set Friction Properties of restored environments
+        for env_idx in env_ids:
+            actor_count = self.gym.get_actor_count(self.envs[env_idx])
+            print(f"Actor Count: {actor_count} in environment: {env_idx}")
+            actor_rigid_body_count = self.gym.get_actor_rigid_body_count(self.envs[env_idx], actor_count-1)
+            print(f"Actor Rigid Body Count: {actor_rigid_body_count} in environment: {env_idx}")
+            actor_rigid_shape_count = self.gym.get_actor_rigid_shape_count(self.envs[env_idx], actor_count-1)
+            print(f"Actor Rigid Shape Count: {actor_rigid_shape_count} in environment: {env_idx}")
 
+            ## Rigid Shape Properties: Compliance, Contact Offset, static friction coeff, restitution, rest offset, rolling friction, torsion friction
+            ## Rigid Body Properties: COM position, Inertia Relative to COM, Mass value
+
+            shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
+            # print("Shape Properties Length: ", len(shape_properties))
+            # names = self.gym.get_actor_rigid_body_names(self.envs[env_idx], self.actor_handles[env_idx])
+            # print("Name of the rigid shapes in the actor: ", names)
+            # print(f"Num Environments: {len(self.envs)} and Number of Actor Handles: {len(self.actor_handles)}")
+            # print("Shape Properties of the rigid shapes are: ", dir(shape_properties[4]))
+            foot_indices = [4, 8, 12, 16]
+            for index in foot_indices:
+                shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
+                # shape_properties[index] = self._dynamics_level(shape_properties[index], self.level[env_idx])
+            # self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_properties)
+    
 
     def _push_robots(self):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
