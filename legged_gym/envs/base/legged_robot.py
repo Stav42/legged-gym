@@ -537,32 +537,32 @@ class LeggedRobot(BaseTask):
             shape_prop = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
             level = self.terrain_levels[env_idx] 
             for index in foot_indices:
-                shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[index], level)
+                shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[int(index/4 - 1)], level)
             self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_prop)
 
             ## Randomize the base mass and inertia:
             rigid_body_prop = self.gym.get_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            rigid_body_prop = self._populate_rigid_body_properties(rigid_body_prop, level)
+            rigid_body_prop[0] = self._populate_rigid_body_properties(self.default_base_rigid_body_props, level)
             print("Rigid Body Properties (mass): ", rigid_body_prop[0].mass)
             print("Rigid Body Properties (inertia): ", rigid_body_prop[0].inertia)
             self.gym.set_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx], rigid_body_prop)
     
     def _populate_rigid_body_properties(self, prop, level):
         
-        if level == 1:
+        if level == 0:
             low = 0.3
             high = 0.7
-            prop[0].mass = np.random.uniform(prop[0].mass + low, prop[0].mass + high)
+            prop.mass = np.random.uniform(prop.mass + low, prop.mass + high)
         
-        elif level == 2:
+        elif level == 1:
             low = 0.4
             high = 1.0
-            prop[0].mass = np.random.uniform(prop[0].mass + low, prop[0].mass + high)
+            prop.mass = np.random.uniform(prop.mass + low, prop.mass + high)
         
-        elif level == 3:
+        elif level == 2:
             low = 0.5
             high = 1.2
-            prop[0].mass = np.random.uniform(prop[0].mass + low, prop[0].mass + high)
+            prop.mass = np.random.uniform(prop.mass + low, prop.mass + high)
 
         return prop
 
@@ -897,6 +897,7 @@ class LeggedRobot(BaseTask):
             actor_handle = self.gym.create_actor(env_handle, robot_asset, start_pose, self.cfg.asset.name, i, self.cfg.asset.self_collisions, 0)
             dof_props = self._process_dof_props(dof_props_asset, i)
             self.gym.set_actor_dof_properties(env_handle, actor_handle, dof_props)
+            body_props = self.gym.get_actor_rigid_body_properties(env_handle, actor_handle)
             body_props = self._process_rigid_body_props(body_props, i)
             self.gym.set_actor_rigid_body_properties(env_handle, actor_handle, body_props, recomputeInertia=True)
             self.envs.append(env_handle)
