@@ -70,6 +70,8 @@ class LeggedRobot(BaseTask):
         self.init_done = False
         self.svan_terrain = False
         self._parse_cfg(self.cfg)
+        self.default_feet_rigid_shape_props = None
+        self.default_base_rigid_body_props = None
         super().__init__(self.cfg, sim_params, physics_engine, sim_device, headless)
 
         if not self.headless:
@@ -79,30 +81,7 @@ class LeggedRobot(BaseTask):
         self.init_done = True
         self.perturb_envs = 10
 
-    def _dynamics_level(self, prop, level):
-        
-        #Level 1:
-        if level == 1:
-            prop.friction = np.random.uniform(0.0, 0.3)
-            prop.rolling_friction = np.random.uniform(0.0, 0.3)
-            prop.compliance = np.random.uniform(0, 0.3)
-            prop.torsion_friction = np;random.uniform(0, 0.3)
 
-        #Level 2:
-        if level == 2:
-            prop.friction = np.random.uniform(0.3, 0.6)
-            prop.rolling_friction = np.random.uniform(0.3, 0.6)
-            prop.compliance = np.random.uniform(0.3, 0.6)
-            prop.torsion_friction = np;random.uniform(0.3, 0.6)
-        
-        #Level 3:
-        if level == 3:
-            prop.friction = np.random.uniform(0.6, 1.0)
-            prop.rolling_friction = np.random.uniform(0.6, 1.0)
-            prop.compliance = np.random.uniform(0.6, 1.0)
-            prop.torsion_friction = np;random.uniform(0.6, 1.0)
-
-        return prop
 
     def step(self, actions):
         """ Apply actions, simulate, call self.post_physics_step()
@@ -530,8 +509,11 @@ class LeggedRobot(BaseTask):
             Friction, Compliance parameters changed
             All changed according to level
         Args:
-            env_ids (List[int]): Environemnt ids
+            env_ids (List[int]): Environment ids
         """
+
+
+
         # Set Friction Properties of restored environments
         for env_idx in env_ids:
             actor_count = self.gym.get_actor_count(self.envs[env_idx])
@@ -545,17 +527,70 @@ class LeggedRobot(BaseTask):
             ## Rigid Body Properties: COM position, Inertia Relative to COM, Mass value
 
             shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            # print("Shape Properties Length: ", len(shape_properties))
-            # names = self.gym.get_actor_rigid_body_names(self.envs[env_idx], self.actor_handles[env_idx])
-            # print("Name of the rigid shapes in the actor: ", names)
-            # print(f"Num Environments: {len(self.envs)} and Number of Actor Handles: {len(self.actor_handles)}")
-            # print("Shape Properties of the rigid shapes are: ", dir(shape_properties[4]))
+
+            ## Randomize Mass of Quadruped base. Random sample from a higher range as difficulty increases. Uniform distrbutino mean increases
+            ## Randomize the feet friction. Friction uniform distribution mean and range increases with level
+            ## Randomize the inertia of the base. Increase the range of sampling. Keep mean same. Look at how this would be done.
+
+            ## Randomizing foot frictions
             foot_indices = [4, 8, 12, 16]
+            shape_prop = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
+            level = self.terrain_levels[env_idx] 
             for index in foot_indices:
-                shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-                # shape_properties[index] = self._dynamics_level(shape_properties[index], self.level[env_idx])
-            # self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_properties)
+                shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[index], level)
+            self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_prop)
+
+            ## Randomize the base mass and inertia:
+            rigid_body_prop = self.gym.get_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx])
+            rigid_body_prop = self._populate_rigid_body_properties(rigid_body_prop, level)
+            print("Rigid Body Properties (mass): ", rigid_body_prop[0].mass)
+            print("Rigid Body Properties (inertia): ", rigid_body_prop[0].inertia)
+            self.gym.set_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx], rigid_body_prop)
     
+    def _populate_rigid_body_properties(self, prop, level):
+        
+        if level == 1:
+            low = 0.3
+            high = 0.7
+            prop[0].mass = np.random.uniform(prop[0].mass + low, prop[0].mass + high)
+        
+        elif level == 2:
+            low = 0.4
+            high = 1.0
+            prop[0].mass = np.random.uniform(prop[0].mass + low, prop[0].mass + high)
+        
+        elif level == 3:
+            low = 0.5
+            high = 1.2
+            prop[0].mass = np.random.uniform(prop[0].mass + low, prop[0].mass + high)
+
+        return prop
+
+
+    def _populate_shape_properties(self, prop, level):
+    
+        #Level 1:
+        if level == 1:
+            prop.friction = np.random.uniform(0.0, 0.3)
+            prop.rolling_friction = np.random.uniform(0.0, 0.3)
+            prop.compliance = np.random.uniform(0, 0.3)
+            prop.torsion_friction = np.random.uniform(0, 0.3)
+
+        #Level 2:
+        elif level == 2:
+            prop.friction = np.random.uniform(0.3, 0.6)
+            prop.rolling_friction = np.random.uniform(0.3, 0.6)
+            prop.compliance = np.random.uniform(0.3, 0.6)
+            prop.torsion_friction = np.random.uniform(0.3, 0.6)
+        
+        #Level 3:
+        elif level == 3:
+            prop.friction = np.random.uniform(0.6, 1.0)
+            prop.rolling_friction = np.random.uniform(0.6, 1.0)
+            prop.compliance = np.random.uniform(0.6, 1.0)
+            prop.torsion_friction = np.random.uniform(0.6, 1.0)
+
+        return prop
 
     def _push_robots(self):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
@@ -862,11 +897,15 @@ class LeggedRobot(BaseTask):
             actor_handle = self.gym.create_actor(env_handle, robot_asset, start_pose, self.cfg.asset.name, i, self.cfg.asset.self_collisions, 0)
             dof_props = self._process_dof_props(dof_props_asset, i)
             self.gym.set_actor_dof_properties(env_handle, actor_handle, dof_props)
-            body_props = self.gym.get_actor_rigid_body_properties(env_handle, actor_handle)
             body_props = self._process_rigid_body_props(body_props, i)
             self.gym.set_actor_rigid_body_properties(env_handle, actor_handle, body_props, recomputeInertia=True)
             self.envs.append(env_handle)
             self.actor_handles.append(actor_handle)
+        
+        body_props = self.gym.get_actor_rigid_body_properties(self.envs[0], self.actor_handles[0])
+        body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[0], self.actor_handles[0])
+        self.default_base_rigid_body_props = body_props[0]
+        self.default_feet_rigid_shape_props = [body_shape[4], body_shape[8], body_shape[12], body_shape[16]]
 
         self.feet_indices = torch.zeros(len(feet_names), dtype=torch.long, device=self.device, requires_grad=False)
         for i in range(len(feet_names)):
