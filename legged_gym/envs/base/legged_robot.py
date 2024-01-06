@@ -79,7 +79,7 @@ class LeggedRobot(BaseTask):
         self._init_buffers()
         self._prepare_reward_function()
         self.init_done = True
-        self.perturb_envs = 10
+        self.perturb_envs = self.num_envs
 
 
 
@@ -115,22 +115,22 @@ class LeggedRobot(BaseTask):
             Force of given magnitude applied in a random location in the body part
         """
 
+        print("env_perturb: ", env_perturb)
+
         ##  # Environments to be perturbed: self.perturb_envs 
-        low = 1; high = 4
+        low = -0.1; high = 0.1
         v1 = np.random.uniform(low, high, self.perturb_envs)
-        low = 1; high = 4
+        low = -0.1; high = 0.1
         v2 = np.random.uniform(low, high, self.perturb_envs)
-        low = 1; high = 4
+        low = -0.1; high = 0.1
         v3 = np.random.uniform(low, high, self.perturb_envs)
 
         ## Stack three vectors of #perturb_envs elements. Pos Size: 3Xperturb_envs
-        # self.gym.refresh_actor_root_state_tensor(self.sim) 
+        self.gym.refresh_rigid_body_state_tensor(self.sim) 
         pos = np.stack((v1, v2, v3)).T
-        unwrapped_states = self.gym.refresh_rigid_body_state_tensor(self.sim)
-        root_states =  gymtorch.wrap_tensor(self.gym.acquire_actor_root_state_tensor(self.sim))
+        # unwrapped_states = self.gym.refresh_rigid_body_state_tensor(self.sim)
         states = gymtorch.wrap_tensor(self.gym.acquire_rigid_body_state_tensor(self.sim))
-        print("Position of rigid bodies: ", states[:, 0:3])
-        print("Position of root bodies: ", root_states)
+        # print("Position of rigid bodies: ", states[:, 0:3])
         # states_1 = self.gym.get_actor_rigid_body_states(self.envs[0], 0, 1)
         # states_2 = self.gym.get_actor_rigid_body_states(self.envs[1], 0, 1)
         # states_3 = self.gym.get_actor_rigid_body_states(self.envs[2], 0, 1)
@@ -138,9 +138,9 @@ class LeggedRobot(BaseTask):
         # print("Position of rigid body 2: ", states_2.shape)
         # print("Position of rigid body 3: ", states_3.shape)
         rb_positions = states[:, 0:3].view(self.num_envs, self.num_bodies, 3)
-        print("Position of rigid bodies: ", rb_positions)
+        # print("Position of rigid bodies: ", rb_positions)
         body_disturb = np.random.uniform(0, 16, self.perturb_envs).astype(int)
-
+        print("Body Disturb: ", body_disturb)
         ## Forces to be applied. Force - 3x20
         low = 0; high = 1
         v1 = np.random.uniform(low, high, self.perturb_envs)
@@ -149,11 +149,11 @@ class LeggedRobot(BaseTask):
         low = 0; high = 1
         v3 = np.random.uniform(low, high, self.perturb_envs)
         force = mag * np.stack((v1, v2, v3)).T
-        # print("force shape: ", force.shape)
+        print("force shape: ", force.shape)
 
         force_ar = torch.zeros((self.num_envs, int(self.num_bodies), 3), device=self.device, dtype=torch.float)
-        # print("Shape of sliced force array: ", force_ar[env_perturb, body_disturb, :].shape)
-        force_ar[env_perturb, body_disturb] = torch.tensor(force, device=self.device, dtype=torch.float)
+        print("Shape of sliced force array: ", force_ar[env_perturb, body_disturb, :].shape)
+        force_ar[env_perturb, body_disturb, :] = torch.tensor(force, device=self.device, dtype=torch.float)
         force_pos = rb_positions.clone()
         # print("Shape of force_array: ", force_ar.shape)
         force_pos[env_perturb, body_disturb, :] += torch.tensor(pos, device=self.device)
@@ -161,13 +161,16 @@ class LeggedRobot(BaseTask):
         self.gym.apply_rigid_body_force_at_pos_tensors(self.sim, gymtorch.unwrap_tensor(force_ar), gymtorch.unwrap_tensor(force_pos), gymapi.ENV_SPACE)
 
         if self.viewer:
-            force_end = force_pos[env_perturb, body_disturb, :] + 2 * force_ar[env_perturb, body_disturb]
+            force_end = force_pos[env_perturb, body_disturb, :] + 0.1 * force_ar[env_perturb, body_disturb]
             color = gymapi.Vec3(1.0, 0.0, 0.0)
             for index, env_index in enumerate(env_perturb):
                 force_pose_vec = force_pos[env_index, body_disturb[index], :]
                 force_pose_vec = gymapi.Vec3(force_pose_vec[0], force_pose_vec[1], force_pose_vec[2])
                 force_end_vec = force_end[index]
                 force_end_vec = gymapi.Vec3(force_end_vec[0], force_end_vec[1], force_end_vec[2])
+                print("Start Position of first arrow: ", force_pose_vec)
+                print("End position of first arrow: ", force_end_vec)
+                print("Position of the body to be disturbed: ", rb_positions[env_index, body_disturb[index]])
                 gymutil.draw_line(force_pose_vec, force_end_vec, color, self.gym, self.viewer, self.envs[env_index])
 
     def post_physics_step(self):
