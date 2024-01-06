@@ -114,22 +114,33 @@ class LeggedRobot(BaseTask):
             Randomly chosen body of a robot
             Force of given magnitude applied in a random location in the body part
         """
+
+        ##  # Environments to be perturbed: self.perturb_envs 
         low = 1; high = 4
         v1 = np.random.uniform(low, high, self.perturb_envs)
         low = 1; high = 4
         v2 = np.random.uniform(low, high, self.perturb_envs)
         low = 1; high = 4
         v3 = np.random.uniform(low, high, self.perturb_envs)
+
+        ## Stack three vectors of #perturb_envs elements. Pos Size: 3Xperturb_envs
+        # self.gym.refresh_actor_root_state_tensor(self.sim) 
         pos = np.stack((v1, v2, v3)).T
+        unwrapped_states = self.gym.refresh_rigid_body_state_tensor(self.sim)
+        root_states =  gymtorch.wrap_tensor(self.gym.acquire_actor_root_state_tensor(self.sim))
         states = gymtorch.wrap_tensor(self.gym.acquire_rigid_body_state_tensor(self.sim))
+        print("Position of rigid bodies: ", states[:, 0:3])
+        print("Position of root bodies: ", root_states)
+        # states_1 = self.gym.get_actor_rigid_body_states(self.envs[0], 0, 1)
+        # states_2 = self.gym.get_actor_rigid_body_states(self.envs[1], 0, 1)
+        # states_3 = self.gym.get_actor_rigid_body_states(self.envs[2], 0, 1)
+        # print("Position of rigid body 1: ", states_1.shape)
+        # print("Position of rigid body 2: ", states_2.shape)
+        # print("Position of rigid body 3: ", states_3.shape)
         rb_positions = states[:, 0:3].view(self.num_envs, self.num_bodies, 3)
+        print("Position of rigid bodies: ", rb_positions)
         body_disturb = np.random.uniform(0, 16, self.perturb_envs).astype(int)
-        # print("rb positions shape: ", rb_positions.shape)
-        # print("Body Index to be disturbed: ", body_disturb)
-        # print("Shape of pos: ", pos.shape)
-        # print("Env # to be perturbed: ", self.perturb_envs)
-        # print("Envs to be perturbed: ", env_perturb)
-        # print("Number of bodies: ", int(self.num_bodies))
+
         ## Forces to be applied. Force - 3x20
         low = 0; high = 1
         v1 = np.random.uniform(low, high, self.perturb_envs)
@@ -150,12 +161,9 @@ class LeggedRobot(BaseTask):
         self.gym.apply_rigid_body_force_at_pos_tensors(self.sim, gymtorch.unwrap_tensor(force_ar), gymtorch.unwrap_tensor(force_pos), gymapi.ENV_SPACE)
 
         if self.viewer:
-            # print("Viewer on")
             force_end = force_pos[env_perturb, body_disturb, :] + 2 * force_ar[env_perturb, body_disturb]
             color = gymapi.Vec3(1.0, 0.0, 0.0)
             for index, env_index in enumerate(env_perturb):
-                # print("Shape of force_end: ", force_end.shape)
-                # print("Shape of sliced force_pos: ", force_pos[env_index, body_disturb[index], :].shape)
                 force_pose_vec = force_pos[env_index, body_disturb[index], :]
                 force_pose_vec = gymapi.Vec3(force_pose_vec[0], force_pose_vec[1], force_pose_vec[2])
                 force_end_vec = force_end[index]
@@ -231,7 +239,7 @@ class LeggedRobot(BaseTask):
         # new spawn. And set parameters as well
         self._reset_dofs(env_ids)
         self._reset_root_states(env_ids)
-        self._reset_env_dynamics(env_ids)
+        # self._reset_env_dynamics(env_ids)
         self._resample_commands(env_ids)
 
         # reset buffers
@@ -512,8 +520,6 @@ class LeggedRobot(BaseTask):
             env_ids (List[int]): Environment ids
         """
 
-
-
         # Set Friction Properties of restored environments
         for env_idx in env_ids:
             actor_count = self.gym.get_actor_count(self.envs[env_idx])
@@ -542,9 +548,7 @@ class LeggedRobot(BaseTask):
 
             ## Randomize the base mass and inertia:
             rigid_body_prop = self.gym.get_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            rigid_body_prop[0] = self._populate_rigid_body_properties(self.default_base_rigid_body_props, level)
-            print("Rigid Body Properties (mass): ", rigid_body_prop[0].mass)
-            print("Rigid Body Properties (inertia): ", rigid_body_prop[0].inertia)
+            rigid_body_prop[0] = self._populate_rigid_body_properties(rigid_body_prop[0], level)
             self.gym.set_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx], rigid_body_prop)
     
     def _populate_rigid_body_properties(self, prop, level):
@@ -552,17 +556,17 @@ class LeggedRobot(BaseTask):
         if level == 0:
             low = 0.3
             high = 0.7
-            prop.mass = np.random.uniform(prop.mass + low, prop.mass + high)
+            prop.mass = np.random.uniform(self.default_base_rigid_body_props.mass + low, self.default_base_rigid_body_props.mass + high)
         
         elif level == 1:
             low = 0.4
             high = 1.0
-            prop.mass = np.random.uniform(prop.mass + low, prop.mass + high)
+            prop.mass = np.random.uniform(self.default_base_rigid_body_props.mass + low, self.default_base_rigid_body_props.mass + high)
         
         elif level == 2:
             low = 0.5
             high = 1.2
-            prop.mass = np.random.uniform(prop.mass + low, prop.mass + high)
+            prop.mass = np.random.uniform(self.default_base_rigid_body_props.mass + low, self.default_base_rigid_body_props.mass + high)
 
         return prop
 
@@ -905,6 +909,7 @@ class LeggedRobot(BaseTask):
         
         body_props = self.gym.get_actor_rigid_body_properties(self.envs[0], self.actor_handles[0])
         body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[0], self.actor_handles[0])
+        
         self.default_base_rigid_body_props = body_props[0]
         self.default_feet_rigid_shape_props = [body_shape[4], body_shape[8], body_shape[12], body_shape[16]]
 
