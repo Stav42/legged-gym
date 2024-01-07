@@ -71,7 +71,7 @@ class Terrain:
         self.height_field_raw = np.zeros((self.tot_rows , self.tot_cols), dtype=np.int16)
         if cfg.curriculum:
             self.curiculum()
-        elif cfg.svan_curriculum:
+        elif cfg.svan_terrain:
             self.svan_curriculum()
         elif cfg.selected:
             self.selected_terrain()

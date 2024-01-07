@@ -627,6 +627,10 @@ class LeggedRobot(BaseTask):
         self.terrain_levels[env_ids] = torch.where(self.terrain_levels[env_ids]>=self.max_terrain_level,
                                                    torch.randint_like(self.terrain_levels[env_ids], self.max_terrain_level),
                                                    torch.clip(self.terrain_levels[env_ids], 0)) # (the minumum level is zero)
+        
+        if not self.cfg.svan_curriculum:
+            print("Curriculum Disabled")
+            self.terrain_levels[env_ids] = torch.randint(0, max_init_level+1, (len(env_ids),), device=self.device)
         self.env_origins[env_ids] = self.terrain_origins[self.terrain_levels[env_ids], self.terrain_types[env_ids]]
 
     def _update_svan_terrain_curriculum(self, env_ids):
@@ -912,12 +916,12 @@ class LeggedRobot(BaseTask):
             self.envs.append(env_handle)
             self.actor_handles.append(actor_handle)
         
-        for i in range(self.num_envs):
-            body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
-            body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
-            print("\n\n\n")
-            for feet in [4, 8, 12, 16]:
-                print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
+        # for i in range(self.num_envs):
+        #     body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
+        #     body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
+        #     print("\n\n\n")
+        #     for feet in [4, 8, 12, 16]:
+        #         print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
         
         body_props = self.gym.get_actor_rigid_body_properties(self.envs[0], self.actor_handles[0])
         body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[0], self.actor_handles[0])

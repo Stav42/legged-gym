@@ -30,12 +30,12 @@
 
 import time
 import os
+import numpy as np
 from collections import deque
 import statistics
 
 from torch.utils.tensorboard import SummaryWriter
 import torch
-import numpy as np
 
 from rsl_rl.algorithms import PPO
 from rsl_rl.modules import ActorCritic, ActorCriticRecurrent
@@ -98,31 +98,30 @@ class OnPolicyRunner:
         lenbuffer = deque(maxlen=100)
         cur_reward_sum = torch.zeros(self.env.num_envs, dtype=torch.float, device=self.device)
         cur_episode_length = torch.zeros(self.env.num_envs, dtype=torch.float, device=self.device)
-        range_start = 0
-        range_end = self.env.num_envs
 
         tot_iter = self.current_learning_iteration + num_learning_iterations
+        range_start = 0
+        range_end = self.env.num_envs
         for it in range(self.current_learning_iteration, tot_iter):
             start = time.time()
             # Rollout
             pert_interval = int(np.random.uniform(20, 40))
-            print("Pert_Interval: ", pert_interval)
+            # print("Pert_Interval: ", pert_interval)
             with torch.inference_mode():
                 for i in range(self.num_steps_per_env):
                     actions = self.alg.act(obs, critic_obs)
-                    # Apply Force every n step
-
                     obs, privileged_obs, rewards, dones, infos = self.env.step(actions)
-                    if self.env.viewer:
-                        self.env.gym.clear_lines(self.env.viewer)
-                    if i % pert_interval == 0:
-                        perturb_envs = np.random.choice(range(range_start, range_end + 1), self.env.perturb_envs, replace=True)
-                        mag = np.random.uniform(5, 10)
-                        self.env.apply_perturbation(perturb_envs, mag) 
                     critic_obs = privileged_obs if privileged_obs is not None else obs
                     obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
                     self.alg.process_env_step(rewards, dones, infos)
+                    # Apply Force every n step:
 
+                    # if i % pert_interval == 0:
+                    #     if self.env.viewer:
+                    #         self.env.gym.clear_lines(self.env.viewer)
+                    #     perturb_envs = np.random.choice(range(range_start, range_end), self.env.perturb_envs, replace=True)
+                    #     mag = np.random.uniform(5, 10)
+                    #     self.env.apply_perturbation(perturb_envs, mag) 
                     if self.log_dir is not None:
                         # Book keeping
                         if 'episode' in infos:

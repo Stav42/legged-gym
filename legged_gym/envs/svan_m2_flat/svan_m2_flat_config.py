@@ -72,7 +72,8 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
         # measure_heights = False
         mesh_type = "trimesh"
         measure_heights = False
-        svan_curriculum = True
+        svan_terrain = True
+        svan_curriculum = False
         curriculum = False
         terrain_length = 16.
         terrain_width = 16.
@@ -107,6 +108,9 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
   
+    class domain_rand( LeggedRobotCfg.domain_rand ):
+        push_robots = False
+
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.25

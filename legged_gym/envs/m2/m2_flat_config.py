@@ -33,22 +33,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 class M2FlatCfg( LeggedRobotCfg ):
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.6] # x,y,z [m]
-        # default_joint_angles = { # = target angles [rad] when action = 0.0
-        #     'FR_abd_j': 0.0,   # [rad]
-        #     'FL_abd_j': 0.0,   # [rad]
-        #     'RR_abd_j': -0.0 ,  # [rad]
-        #     'RL_abd_j': -0.0,   # [rad]
 
-        #     'FR_hip_j':  0.0,   # [rad]
-        #     'FL_hip_j':  0., # [rad]
-        #     'RR_hip_j':  0.0,   # [rad]
-        #     'RL_hip_j':  0., # [rad]
-                        
-        #     'FR_knee_j':0.0,  # [rad]
-        #     'FL_knee_j':0.0,   # [rad]
-        #     'RR_knee_j':0.0, # [rad]
-        #     'RL_knee_j':0.0,   # [rad]            
-        # }
 
         default_joint_angles = { # = target angles [rad] when action = 0.0
             'FL_hip_joint': 0.1,   # [rad]
@@ -68,8 +53,17 @@ class M2FlatCfg( LeggedRobotCfg ):
         }
     
     class terrain( LeggedRobotCfg.terrain ):
-        mesh_type = 'plane'
+        # mesh_type = 'plane'
+        # measure_heights = False
+        mesh_type = "trimesh"
         measure_heights = False
+        svan_terrain = True
+        svan_curriculum = False
+        curriculum = False
+        terrain_length = 16.
+        terrain_width = 16.
+        num_rows = 4 # number of terrain rows (levels)
+        num_cols = 4 # number of terrain cols (types)
 
     class control( LeggedRobotCfg.control ):
         # PD Drive parameters:
@@ -98,6 +92,9 @@ class M2FlatCfg( LeggedRobotCfg ):
         terminate_after_contacts_on = ["base"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
+
+    class domain_rand( LeggedRobotCfg.domain_rand ):
+        push_robots = False
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
