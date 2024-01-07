@@ -912,9 +912,16 @@ class LeggedRobot(BaseTask):
             self.envs.append(env_handle)
             self.actor_handles.append(actor_handle)
         
+        for i in range(self.num_envs):
+            body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
+            body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
+            print("\n\n\n")
+            for feet in [4, 8, 12, 16]:
+                print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
+        
         body_props = self.gym.get_actor_rigid_body_properties(self.envs[0], self.actor_handles[0])
         body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[0], self.actor_handles[0])
-        
+
         self.default_base_rigid_body_props = body_props[0]
         self.default_feet_rigid_shape_props = [body_shape[4], body_shape[8], body_shape[12], body_shape[16]]
 
