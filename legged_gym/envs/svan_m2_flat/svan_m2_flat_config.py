@@ -73,8 +73,11 @@ class SvanM2FlatCfg( LeggedRobotCfg ):
         mesh_type = "trimesh"
         measure_heights = False
         svan_curriculum = True
+        curriculum = False
+        terrain_length = 16.
+        terrain_width = 16.
         num_rows = 4 # number of terrain rows (levels)
-        num_cols = 3 # number of terrain cols (types)
+        num_cols = 4 # number of terrain cols (types)
 
     class control( LeggedRobotCfg.control ):
         # PD Drive parameters:

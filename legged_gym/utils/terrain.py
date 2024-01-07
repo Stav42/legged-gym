@@ -175,7 +175,9 @@ class Terrain:
         elif col == 1:
             terrain_utils.spherical_indentation_terrain(terrain)
         elif col == 2:
-            terrain_utils.wave_terrain(terrain, amplitude = 0.05)
+            terrain_utils.wave_terrain(terrain, amplitude = 0.1)
+        elif col == 3:
+            terrain_utils.wave_terrain(terrain, amplitude = 0.01)
 
         
         return terrain
