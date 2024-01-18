@@ -53,15 +53,16 @@ class M2FlatCfg( LeggedRobotCfg ):
         }
     
     class terrain( LeggedRobotCfg.terrain ):
-        # mesh_type = 'plane'
+        mesh_type = 'plane'
         # measure_heights = False
-        mesh_type = "trimesh"
+        # mesh_type = "trimesh"
         measure_heights = False
-        svan_terrain = True
+        # svan_terrain = True
         svan_curriculum = False
-        curriculum = False
-        terrain_length = 16.
-        terrain_width = 16.
+        # curriculum = True
+        # terrain_length = 16.
+        # max_init_terrain_level = 0
+        # terrain_width = 16.
         num_rows = 4 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -95,6 +96,8 @@ class M2FlatCfg( LeggedRobotCfg ):
 
     class domain_rand( LeggedRobotCfg.domain_rand ):
         push_robots = False
+        randomize_base_mass = True
+        added_mass_range = [-1., 1.]
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
@@ -110,6 +113,7 @@ class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class runner( LeggedRobotCfgPPO.runner ):
         run_name = ''
         experiment_name = 'Flat_m2'
+        max_iterations = 2500
 
 
 ## Checking ssh cases

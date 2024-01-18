@@ -69,10 +69,10 @@ class Terrain:
 
         ## Describe the heightfield for each of those pixel
         self.height_field_raw = np.zeros((self.tot_rows , self.tot_cols), dtype=np.int16)
-        if cfg.curriculum:
-            self.curiculum()
-        elif cfg.svan_terrain:
+        if cfg.svan_terrain:
             self.svan_curriculum()
+        elif cfg.curriculum:
+            self.curiculum()
         elif cfg.selected:
             self.selected_terrain()
         else:    

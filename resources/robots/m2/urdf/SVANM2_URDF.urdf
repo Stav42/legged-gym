@@ -20,13 +20,9 @@
   <link
     name="trunk">
     <inertial>
-      <origin
-        xyz="0.0046 -0.0009 0.0002"
-        rpy="0 0 0" />
-      <mass
-        value="3.4234" />
+      <origin xyz="0.0047249 -0.0000177 0.0011585" rpy="0 0 0" />
+      <mass value="3.4234000" />
       <inertia ixx="0.0163964" ixy="-0.0000159" ixz="0.0010427" iyy="0.0425922" iyz="-0.0000006" izz="0.0511340" />
-
     </inertial>
     <visual>
       <origin
@@ -55,12 +51,10 @@
   <link
     name="FR_hip">
     <inertial>
-      <origin
-        xyz="0.0492 -0.0780 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="0.0492121 -0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="-0.0001656" ixz="0.0000090" iyy="0.0011263" iyz="-0.0000051" izz="0.0033905" />
-   </inertial>
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
@@ -106,9 +100,7 @@
   <link
     name="FR_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="-0.0000042 0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="-0.0000001" iyy="0.0011591" iyz="0.0000243" izz="0.0000720" />
     </inertial>
@@ -154,9 +146,7 @@
   <link
     name="FR_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="-0.0035383 -0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="-0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="-0.0000010" izz="0.0000424" />
     </inertial>
@@ -200,7 +190,7 @@
   </joint>
   <joint name="FR_foot_fixed" type="fixed" dont_collapse="true">
     <origin
-      xyz="-0.026457 0 -0.16693"
+      xyz="-0.0 0 -0.16693"
       rpy="0 0 0" />
     <parent
       link="FR_calf" />
@@ -210,9 +200,7 @@
   <link
     name="FL_hip">
     <inertial>
-      <origin
-        xyz="0.0492 0.0780 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="0.0492121 0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="0.0001656" ixz="0.0000090" iyy="0.0011263" iyz="0.0000051" izz="0.0033905" />
     </inertial>
@@ -258,9 +246,7 @@
   <link
     name="FL_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 -0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="-0.0000042 -0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="0.0000001" iyy="0.0011591" iyz="0.0000243" izz="0.0000720" />
     </inertial>
@@ -306,9 +292,7 @@
   <link
     name="FL_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="-0.0035383 0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="0.0000010" izz="0.0000424" />
     </inertial>
@@ -353,7 +337,7 @@
   </joint>
   <joint name="FL_foot_fixed" type="fixed" dont_collapse="true">
     <origin
-      xyz="-0.026618 0 -0.16693"
+      xyz="-0.0 0 -0.16693"
       rpy="0 0 0" />
     <parent
       link="FL_calf" />
@@ -364,9 +348,7 @@
   <link
     name="RR_hip">
     <inertial>
-      <origin
-        xyz="-0.0492 -0.0781 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="-0.0492121 -0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="0.0001656" ixz="-0.0000090" iyy="0.0011263" iyz="-0.0000051" izz="0.0033905" />
     </inertial>
@@ -412,9 +394,7 @@
   <link
     name="RR_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="0.0000042 0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="-0.0000001" iyy="0.0011591" iyz="-0.0000243" izz="0.0000720" />
     </inertial>
@@ -460,9 +440,7 @@
   <link
     name="RR_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="0.0035383 0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="-0.0000010" izz="0.0000424" />
     </inertial>
@@ -507,7 +485,7 @@
   </joint>
     <joint name="RR_foot_fixed" type="fixed" dont_collapse="true">
     <origin
-      xyz="-0.018339 0 -0.16802"
+      xyz="-0.0 0 -0.16802"
       rpy="0 0 0" />
     <parent
       link="RR_calf" />
@@ -517,9 +495,7 @@
   <link
     name="RL_hip">
     <inertial>
-      <origin
-        xyz="-0.0492 0.0780 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="-0.0492121 0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="-0.0001656" ixz="-0.0000090" iyy="0.0011263" iyz="0.0000051" izz="0.0033905" />
     </inertial>
@@ -565,9 +541,7 @@
   <link
     name="RL_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 -0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="-0.0000042 -0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="-0.0000001" iyy="0.0011591" iyz="0.0000243" izz="0.0000720" />
     </inertial>
@@ -613,9 +587,7 @@
   <link
     name="RL_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="0.0035383 -0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="-0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="0.0000010" izz="0.0000424" />
     </inertial>
@@ -660,6 +632,13 @@
   </joint>
 
   <link name="FR_foot">
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="750.0"/>
+      <spinning_friction value="0.3"/>
+      <lateral_friction value="50"/>
+    </contact>
     <inertial>
         <origin xyz="0.0014979844072685 1.99840144432528E-15 7.77349055681165E-05"
         rpy="0 0 0" /> 
@@ -669,17 +648,24 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
   <link name="FL_foot">
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="750.0"/>
+      <spinning_friction value="0.3"/>
+      <lateral_friction value="50"/>
+    </contact>
     <inertial>
         <origin xyz="0.0014979844072685 1.99840144432528E-15 7.77349055681165E-05"
         rpy="0 0 0" /> 
@@ -689,17 +675,24 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
   <link name="RL_foot">
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="750.0"/>
+      <spinning_friction value="0.3"/>
+      <lateral_friction value="50"/>
+    </contact>
     <inertial>
         <origin xyz="0.0014979844072685 1.99840144432528E-15 7.77349055681165E-05"
         rpy="0 0 0" /> 
@@ -709,17 +702,24 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
   <link name="RR_foot">
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="750.0"/>
+      <spinning_friction value="0.3"/>
+      <lateral_friction value="50"/>
+    </contact>
     <inertial>
         <origin xyz="0.0014979844072685 1.99840144432528E-15 7.77349055681165E-05"
         rpy="0 0 0" /> 
@@ -729,19 +729,19 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
   <joint name="RL_foot_fixed" type="fixed" dont_collapse="true" >
     <origin
-      xyz="-0.0185 0 -0.16802"
+      xyz="-0.0 0 -0.16802"
       rpy="0 0 0" />
     <parent
       link="RL_calf" />
