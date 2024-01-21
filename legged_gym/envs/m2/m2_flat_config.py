@@ -90,7 +90,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         foot_name = "foot"
         fix_base_link = False
         penalize_contacts_on = ["thigh", "calf"]
-        terminate_after_contacts_on = ["base"]
+        terminate_after_contacts_on = ["base", "hip"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
 
@@ -101,13 +101,15 @@ class M2FlatCfg( LeggedRobotCfg ):
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.5
+        base_height_target = 0.3
         only_positive_rewards = True
-        feet_air_time = 2.5
+        feet_air_time = 0.5
 
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002
             dof_pos_limits = -0.01
+            tracking_lin_vel = 2.0
+            tracking_ang_vel = 1.5
             # feet_stumble = -0.2 
 
 class M2FlatCfgPPO( LeggedRobotCfgPPO ):
