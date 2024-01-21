@@ -97,7 +97,7 @@
       lower="-4.8"
       upper="4.8"
       effort="20"
-      velocity="52.4" />
+      velocity="10.4" />
   </joint>
   <link
     name="FR_thigh">
@@ -142,7 +142,7 @@
       link="FR_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -188,7 +188,7 @@
       link="FR_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
   </joint>
   <joint name="fr_dummy_j" type="fixed" dont_collapse="true">
     <origin
@@ -242,7 +242,7 @@
       link="FL_hip" />
     <axis
       xyz="1 0 0" />
-    <limit effort="20" lower="-3.802851455917" upper="3.802851455917" velocity="52.4"/>
+    <limit effort="20" lower="-3.802851455917" upper="3.802851455917" velocity="10.4"/>
 
   </joint>
   <link
@@ -288,7 +288,7 @@
       link="FL_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -334,7 +334,7 @@
       link="FL_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
 
   </joint>
   <joint name="FL_foot_fixed" type="fixed" dont_collapse="true">
@@ -390,7 +390,7 @@
       link="RR_hip" />
     <axis
       xyz="1 0 0" />
-    <limit effort="20" lower="-4.802851455917" upper="4.802851455917" velocity="52.4"/>
+    <limit effort="20" lower="-4.802851455917" upper="4.802851455917" velocity="10.4"/>
 
   </joint>
   <link
@@ -436,7 +436,7 @@
       link="RR_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -482,7 +482,7 @@
       link="RR_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
 
   </joint>
     <joint name="RR_foot_fixed" type="fixed" dont_collapse="true">
@@ -537,7 +537,7 @@
       link="RL_hip" />
     <axis
       xyz="1 0 0" />
-    <limit effort="20" lower="-4.802851455917" upper="4.802851455917" velocity="52.4"/>
+    <limit effort="20" lower="-4.802851455917" upper="4.802851455917" velocity="10.4"/>
 
   </joint>
   <link
@@ -583,7 +583,7 @@
       link="RL_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -629,7 +629,7 @@
       link="RL_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
 
   </joint>
 
@@ -643,13 +643,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </collision>
   </link>
@@ -663,13 +663,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </collision>
   </link>
@@ -683,13 +683,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </collision>
   </link>
@@ -703,13 +703,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.02" />
+          <sphere radius="0.022" />
         </geometry>
       </collision>
   </link>

@@ -95,22 +95,16 @@ class M2FlatCfg( LeggedRobotCfg ):
         flip_visual_attachments = False
 
     class domain_rand( LeggedRobotCfg.domain_rand ):
-        push_robots = False
+        push_robots = True
         randomize_base_mass = True
         added_mass_range = [-1., 1.]
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.3
-        only_positive_rewards = True
-        feet_air_time = 0.5
-
+        base_height_target = 0.25
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002
-            dof_pos_limits = -0.01
-            tracking_lin_vel = 2.0
-            tracking_ang_vel = 1.5
-            # feet_stumble = -0.2 
+            dof_pos_limits = -10.0
 
 class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
