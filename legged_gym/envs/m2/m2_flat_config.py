@@ -85,7 +85,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         decimation = 4
 
     class asset( LeggedRobotCfg.asset ):
-        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/m2/urdf/SVANM2_URDF.urdf'
+        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/m2/urdf/SVANM2_URDF_inertia_change.urdf'
         name = "m2"
         foot_name = "foot"
         fix_base_link = False
@@ -101,11 +101,14 @@ class M2FlatCfg( LeggedRobotCfg ):
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.25
-        feet_air_time = 2.5
+        base_height_target = 0.3
+        only_positive_rewards = True
+        feet_air_time = 1.5
+
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002
-            dof_pos_limits = -10.0
+            dof_pos_limits = -0.01
+            # feet_stumble = -0.2 
 
 class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):

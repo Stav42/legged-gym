@@ -20,9 +20,7 @@
   <link
     name="trunk">
     <inertial>
-      <origin
-        xyz="0.0046 -0.0009 0.0002"
-        rpy="0 0 0" />
+      <origin xyz="0.0047249 -0.0000177 0.0011585" rpy="0 0 0" />
       <mass
         value="3.4234" />
       <inertia ixx="0.0163964" ixy="-0.0000159" ixz="0.0010427" iyy="0.0425922" iyz="-0.0000006" izz="0.0511340" />
@@ -55,9 +53,7 @@
   <link
     name="FR_hip">
     <inertial>
-      <origin
-        xyz="0.0492 -0.0780 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="0.0492121 -0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="-0.0001656" ixz="0.0000090" iyy="0.0011263" iyz="-0.0000051" izz="0.0033905" />
    </inertial>
@@ -98,17 +94,15 @@
     <axis
       xyz="1 0 0" />
     <limit
-      lower="-0.8"
-      upper="0.8"
+      lower="-4.8"
+      upper="4.8"
       effort="20"
       velocity="52.4" />
   </joint>
   <link
     name="FR_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="-0.0000042 0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="-0.0000001" iyy="0.0011591" iyz="0.0000243" izz="0.0000720" />
     </inertial>
@@ -148,15 +142,13 @@
       link="FR_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-1.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
 
   </joint>
   <link
     name="FR_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="-0.0035383 -0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="-0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="-0.0000010" izz="0.0000424" />
     </inertial>
@@ -196,7 +188,7 @@
       link="FR_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-2.69653369433" upper="-0.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
   </joint>
   <joint name="FR_foot_fixed" type="fixed" dont_collapse="true">
     <origin
@@ -210,9 +202,7 @@
   <link
     name="FL_hip">
     <inertial>
-      <origin
-        xyz="0.0492 0.0780 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="0.0492121 0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="0.0001656" ixz="0.0000090" iyy="0.0011263" iyz="0.0000051" izz="0.0033905" />
     </inertial>
@@ -252,15 +242,13 @@
       link="FL_hip" />
     <axis
       xyz="1 0 0" />
-    <limit effort="20" lower="-0.802851455917" upper="0.802851455917" velocity="52.4"/>
+    <limit effort="20" lower="-3.802851455917" upper="3.802851455917" velocity="52.4"/>
 
   </joint>
   <link
     name="FL_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 -0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="-0.0000042 -0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="0.0000001" iyy="0.0011591" iyz="0.0000243" izz="0.0000720" />
     </inertial>
@@ -300,15 +288,13 @@
       link="FL_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-1.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
 
   </joint>
   <link
     name="FL_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="-0.0035383 0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="0.0000010" izz="0.0000424" />
     </inertial>
@@ -348,7 +334,7 @@
       link="FL_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-2.69653369433" upper="-0.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
 
   </joint>
   <joint name="FL_foot_fixed" type="fixed" dont_collapse="true">
@@ -364,9 +350,7 @@
   <link
     name="RR_hip">
     <inertial>
-      <origin
-        xyz="-0.0492 -0.0781 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="-0.0492121 -0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="0.0001656" ixz="-0.0000090" iyy="0.0011263" iyz="-0.0000051" izz="0.0033905" />
     </inertial>
@@ -406,15 +390,13 @@
       link="RR_hip" />
     <axis
       xyz="1 0 0" />
-    <limit effort="20" lower="-0.802851455917" upper="0.802851455917" velocity="52.4"/>
+    <limit effort="20" lower="-4.802851455917" upper="4.802851455917" velocity="52.4"/>
 
   </joint>
   <link
     name="RR_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="0.0000042 0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="-0.0000001" iyy="0.0011591" iyz="-0.0000243" izz="0.0000720" />
     </inertial>
@@ -454,15 +436,13 @@
       link="RR_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-1.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
 
   </joint>
   <link
     name="RR_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="0.0035383 0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="-0.0000010" izz="0.0000424" />
     </inertial>
@@ -502,7 +482,7 @@
       link="RR_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-2.69653369433" upper="-0.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
 
   </joint>
     <joint name="RR_foot_fixed" type="fixed" dont_collapse="true">
@@ -517,9 +497,7 @@
   <link
     name="RL_hip">
     <inertial>
-      <origin
-        xyz="-0.0492 0.0780 0.0008"
-        rpy="0 0 0" />
+      <origin xyz="-0.0492121 0.0779589 0.0008006" rpy="0 0 0" />
       <mass value="1.3509490" />
       <inertia ixx="0.0033376" ixy="-0.0001656" ixz="-0.0000090" iyy="0.0011263" iyz="0.0000051" izz="0.0033905" />
     </inertial>
@@ -559,15 +537,13 @@
       link="RL_hip" />
     <axis
       xyz="1 0 0" />
-    <limit effort="20" lower="-0.802851455917" upper="0.802851455917" velocity="52.4"/>
+    <limit effort="20" lower="-4.802851455917" upper="4.802851455917" velocity="52.4"/>
 
   </joint>
   <link
     name="RL_thigh">
     <inertial>
-      <origin
-        xyz="0.0000 -0.0008 -0.0603"
-        rpy="0 0 0" />
+      <origin xyz="-0.0000042 -0.0008381 -0.0603416" rpy="0 0 0" />
       <mass value="0.2502465" />
       <inertia ixx="0.0011437" ixy="0.0000000" ixz="-0.0000001" iyy="0.0011591" iyz="0.0000243" izz="0.0000720" />
     </inertial>
@@ -607,15 +583,13 @@
       link="RL_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-1.0471975512" upper="4.18879020479" velocity="28.6"/>
+    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="28.6"/>
 
   </joint>
   <link
     name="RL_calf">
     <inertial>
-      <origin
-        xyz="-0.0035 0.0000 -0.0688"
-        rpy="0 0 0" />
+      <origin xyz="0.0035383 -0.0000273 -0.0688420" rpy="0 0 0" />
       <mass value="0.2017400" />
       <inertia ixx="0.0010436" ixy="-0.0000001" ixz="-0.0000693" iyy="0.0010692" iyz="0.0000010" izz="0.0000424" />
     </inertial>
@@ -655,7 +629,7 @@
       link="RL_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-2.69653369433" upper="-0.916297857297" velocity="28.6"/>
+    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
 
   </joint>
 
@@ -669,13 +643,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
@@ -689,13 +663,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
@@ -709,13 +683,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
@@ -729,13 +703,13 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <sphere radius="0.01" />
+          <sphere radius="0.02" />
         </geometry>
       </collision>
   </link>
