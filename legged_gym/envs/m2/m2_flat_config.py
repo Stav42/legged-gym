@@ -101,9 +101,9 @@ class M2FlatCfg( LeggedRobotCfg ):
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.3
+        base_height_target = 0.5
         only_positive_rewards = True
-        feet_air_time = 1.5
+        feet_air_time = 2.5
 
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002

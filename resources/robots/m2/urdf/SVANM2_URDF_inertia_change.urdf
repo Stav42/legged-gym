@@ -190,9 +190,9 @@
       xyz="0 1 0" />
     <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="28.6"/>
   </joint>
-  <joint name="FR_foot_fixed" type="fixed" dont_collapse="true">
+  <joint name="fr_dummy_j" type="fixed" dont_collapse="true">
     <origin
-      xyz="-0.026457 0 -0.16693"
+      xyz="-0.0 0 -0.16693"
       rpy="0 0 0" />
     <parent
       link="FR_calf" />
@@ -339,7 +339,7 @@
   </joint>
   <joint name="FL_foot_fixed" type="fixed" dont_collapse="true">
     <origin
-      xyz="-0.026618 0 -0.16693"
+      xyz="-0.0 0 -0.16693"
       rpy="0 0 0" />
     <parent
       link="FL_calf" />
@@ -487,7 +487,7 @@
   </joint>
     <joint name="RR_foot_fixed" type="fixed" dont_collapse="true">
     <origin
-      xyz="-0.018339 0 -0.16802"
+      xyz="-0.0 0 -0.16802"
       rpy="0 0 0" />
     <parent
       link="RR_calf" />
@@ -715,7 +715,7 @@
   </link>
   <joint name="RL_foot_fixed" type="fixed" dont_collapse="true" >
     <origin
-      xyz="-0.0185 0 -0.16802"
+      xyz="-0.0 0 -0.16802"
       rpy="0 0 0" />
     <parent
       link="RL_calf" />
