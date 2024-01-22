@@ -77,7 +77,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         # }     # [N*m*s/rad]
 
         
-        stiffness = {"joint": 38}
+        stiffness = {"joint": 60}
         damping = {'joint': 0.5} 
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.20
@@ -101,10 +101,26 @@ class M2FlatCfg( LeggedRobotCfg ):
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.25
+        base_height_target = 0.29
         class scales( LeggedRobotCfg.rewards.scales ):
-            torques = -0.0002
-            dof_pos_limits = -10.0
+            # torques = -0.0002
+            # dof_pos_limits = -10.0
+            feet_air_time =  2.0
+            base_height = -0.02
+            torques = -0.0000
+            lin_vel_z = 0
+            termination = -0.0
+            tracking_lin_vel = 1.0
+            tracking_ang_vel = 0.5
+            ang_vel_xy = -0.0
+            orientation = -0.
+            dof_vel = -0.
+            dof_acc = -2.5e-7
+            collision = -0.
+            feet_stumble = -0.0 
+            action_rate = -0.000
+            stand_still = -0.
+        only_positive_rewards = False
 
 class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
