@@ -36,6 +36,8 @@ from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
 from shvan_msgs.msg import float_vec
 
+from pynput import keyboard
+
 import numpy as np
 import torch
 
@@ -57,6 +59,30 @@ for ax in axes:
     ax.legend()
     ax.set_xlim(0, 100)
     ax.set_ylim(-2, 1.5)
+
+command = [0, 0, 0]
+
+def update_command(key):
+    global command
+    try:
+        if key == keyboard.Key.up:
+            command[0] += 0.2
+        elif key == keyboard.Key.down:
+            command[0] -= 0.2
+        elif key == keyboard.Key.right:
+            command[1] += 0.1
+        elif key == keyboard.Key.left:
+            command[1] -= 0.1
+        elif key.char == 'y':
+            command[2] += 0.1
+        elif key.char == 't':
+            command[2] -= 0.1
+    except AttributeError:
+        pass
+
+def on_press(key):
+    print("Key Pressed")
+    update_command(key)
 
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
@@ -97,8 +123,15 @@ def play(args):
     obs_ind = [[0, 1, 2], [3, 4, 5], [9, 10, 11], [12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23], [36, 37, 38, 39, 40, 41]]
 
     for i in range(10*int(env.max_episode_length)):
+        # obs[0, 9] = 1
+        # obs[0, 10] = 0.
+        # obs[0, 11] = 0.
+
         actions = policy(obs.detach())
         obs, _, rews, dones, infos = env.step(actions.detach())
+        obs[0, 9] = command[0]
+        obs[0, 10] = command[1]
+        obs[0, 11] = command[2]
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]
@@ -147,6 +180,8 @@ if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
     args = get_args()
     play(args)
     plt.ioff()
