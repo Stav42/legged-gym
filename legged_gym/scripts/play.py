@@ -34,6 +34,8 @@ import os
 import isaacgym
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
+from isaacgym import gymapi
+from isaacgym import gymtorch
 
 from pynput import keyboard
 
@@ -57,26 +59,6 @@ lines_joint2 = [ax5.plot([], [], label=f'Joint Position {6+i+1}')[0] for i in ra
 lines_target_position = [ax6.plot([], [], label=f'Target Joint Position {i+1}')[0] for i in range(6)]  # Initialize 5 line plots
 lines = [lines_lin_vel, lines_ang_vel, lines_command, lines_joint1, lines_joint2, lines_target_position]
 
-command = [0, 0, 0]
-
-def update_command(key):
-    global command
-    try:
-        if key == keyboard.Key.up:
-            command[0] += 0.1
-        elif key == keyboard.Key.down:
-            command[0] -= 0.1
-        elif key == keyboard.Key.right:
-            command[1] += 0.1
-        elif key == keyboard.Key.left:
-            command[1] -= 0.1
-        elif key.char == 'y':
-            command[2] += 0.1
-        elif key.char == 't':
-            command[2] -= 0.1
-    except AttributeError:
-        pass
-
 def on_press(key):
     print("Key Pressed")
     update_command(key)
@@ -87,9 +69,11 @@ for ax in axes:
     ax.set_ylim(-2, 1.5)
 
 command = [0, 0, 0]
+pause = False
 
 def update_command(key):
     global command
+    global pause
     try:
         if key == keyboard.Key.up:
             command[0] += 0.2
@@ -103,6 +87,9 @@ def update_command(key):
             command[2] += 0.1
         elif key.char == 't':
             command[2] -= 0.1
+        elif key.char == 'z':
+            pause = not pause
+
     except AttributeError:
         pass
 
@@ -146,23 +133,69 @@ def play(args):
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
     plot = False
+    global pause
 
     obs_ind = [[0, 1, 2], [3, 4, 5], [9, 10, 11], [12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23], [36, 37, 38, 39, 40, 41]]
 
     for i in range(10*int(env.max_episode_length)):
-        # obs[0, 9] = 1
-        # obs[0, 10] = 0.
-        # obs[0, 11] = 0.
+
+        if pause:
+            while True:
+                # print("On Break")
+                if pause == False:
+                    break
+        
+        default_joint_angles =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
+        # default_joint_angles =  [0.4000,  0.4000, 0.40000, 0.40000,  0.40000, 0.40000,  0.40000,  0.40000, 0.4000, 0.40000,  0.40000, 0.4000]
+
 
         actions = policy(obs.detach())
+        if i>0:
+            actions = actions
+            # print("Model Activated")
+        else:
+            actions = 0*actions
+
+        _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
+        dof_states = gymtorch.wrap_tensor(_dof_states)
+        # actions[0] = 4*torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        # actions = 0 * actions
+        print("actions: ", actions)
+
+        # if env.gym.get_sim_time(env.sim)>0:
+        #     for j in range(0, 12):
+        #         dof_states[j][0] = default_joint_angles[j]+0.5*np.sin(env.gym.get_sim_time(env.sim)/2)
+                # dof_state_list[j][0] = dof_state_list[j][0]+0.0*np.sin(env.gym.get_sim_time(env.sim)/2)
+                # env.gym.set_dof_target_position(env.envs[0], j, dof_state_list[j][0])
+
+        # env_ids = torch.tensor([0]).to(dtype=torch.int32)
+        # env.gym.set_dof_state_tensor_indexed(env.sim,
+        #                                       gymtorch.unwrap_tensor(dof_states),
+        #                                       gymtorch.unwrap_tensor(env_ids), 1)
+
         obs, _, rews, dones, infos = env.step(actions.detach())
+
+        # for i in range(1):
+            # env.gym.set_rigid_linear_velocity(env.envs[0], env.gym.get_rigid_handle(env.envs[0], "m2", env.gym.get_actor_rigid_body_names(env.envs[0], 0)[i]), gymapi.Vec3(0.0, 0, 0.5))
+            # env.gym.set_rigid_angular_velocity(env.envs[0], env.gym.get_rigid_handle(env.envs[0], "m2", env.gym.get_actor_rigid_body_names(env.envs[0], 0)[i]), gymapi.Vec3(0.1, 0, 0))
+        # dof_state_list = env.gym.get_actor_dof_states(env.envs[0], 0, 1)
+
+        # print(dof_state_list[0][0])
+        
+
+            # env.gym.set_dof_target_positions(env.envs[0], 0, dof_state_list ,1)
+        print("DOF StateList New: ", env.gym.get_actor_dof_states(env.envs[0], 0, 1))
+        _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
+        dof_states = gymtorch.wrap_tensor(_dof_states)
+        print("DOF State New: ", dof_states)
+        
         obs[0, 9] = command[0]
         obs[0, 10] = command[1]
         obs[0, 11] = command[2]
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]
-
+        print("Observation: ", obs)
         if plot:
             for index, line in enumerate(lines):
                 for ind in range(len(obs_ind[index])):
@@ -207,10 +240,6 @@ if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False
-<<<<<<< HEAD
-        # Start the keyboard listener
-=======
->>>>>>> keyboard_play
     listener = keyboard.Listener(on_press=on_press)
     listener.start()
     args = get_args()

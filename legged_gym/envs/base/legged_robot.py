@@ -298,10 +298,17 @@ class LeggedRobot(BaseTask):
                                     self.dof_vel * self.obs_scales.dof_vel,
                                     self.actions
                                     ),dim=-1)
-        
+        # print("Default Pose: ", self.default_dof_pos)
+        _dof_states = self.gym.acquire_dof_state_tensor(self.sim)
+        dof_states = gymtorch.wrap_tensor(_dof_states)
+        print("DOF State Inside: ", dof_states)
+        print("Delta Pos ", self.dof_pos)
+        # print("DOF Names: ", self.dof_names)
+
         # print("Observations: \n")
-        # print("Default Pose DOF: ", self.default_dof_pos)
+        # print("Observation DOF: ", (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)
         # print("Base Linear Velocity: ", self.base_lin_vel * self.obs_scales.lin_vel)
+        # print("Base Linear Velocity From root state: ", self.root_states[0, 7:10] * self.obs_scales.lin_vel)
         # print("Base Angular Velocity: ", self.base_ang_vel * self.obs_scales.ang_vel)
         # print("Projected Gravity: ", self.projected_gravity)
         # print("Commands: ", self.commands[:, :3] * self.commands_scale)
@@ -470,7 +477,8 @@ class LeggedRobot(BaseTask):
             torques = actions_scaled
         else:
             raise NameError(f"Unknown controller type: {control_type}")
-
+        # print("DOF Default: ", self.default_dof_pos)
+        # print("DOF Pose: ", self.dof_pos)
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
 
     def _reset_dofs(self, env_ids):
@@ -479,7 +487,7 @@ class LeggedRobot(BaseTask):
         Velocities are set to zero.
 
         Args:
-            env_ids (List[int]): Environemnt ids
+            env_ids (List[int]): Environment ids
         """
         self.dof_pos[env_ids] = self.default_dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=self.device)
         self.dof_vel[env_ids] = 0.
