@@ -90,7 +90,8 @@ class M2FlatCfg( LeggedRobotCfg ):
         foot_name = "foot"
         fix_base_link = False
         penalize_contacts_on = ["thigh", "calf"]
-        terminate_after_contacts_on = ["base", "hip"]
+        # terminate_after_contacts_on = ["base", "hip"]
+        terminate_after_contacts_on = []
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
 

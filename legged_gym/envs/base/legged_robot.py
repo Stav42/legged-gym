@@ -299,10 +299,10 @@ class LeggedRobot(BaseTask):
                                     self.actions
                                     ),dim=-1)
         # print("Default Pose: ", self.default_dof_pos)
-        _dof_states = self.gym.acquire_dof_state_tensor(self.sim)
-        dof_states = gymtorch.wrap_tensor(_dof_states)
-        print("DOF State Inside: ", dof_states)
-        print("Delta Pos ", self.dof_pos)
+        # _dof_states = self.gym.acquire_dof_state_tensor(self.sim)
+        # dof_states = gymtorch.wrap_tensor(_dof_states)
+        # print("DOF State Inside: ", dof_states)
+        # print("Delta Pos ", self.dof_pos)
         # print("DOF Names: ", self.dof_names)
 
         # print("Observations: \n")

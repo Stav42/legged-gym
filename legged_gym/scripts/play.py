@@ -115,6 +115,7 @@ def play(args):
     # load policy
     train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
+    # policy = ppo_runner.get_inference_policy(device=env.device)
     policy = ppo_runner.get_inference_policy(device=env.device)
     
     # export policy as a jit module (used to run it from C++)
@@ -155,9 +156,10 @@ def play(args):
             # print("Model Activated")
         else:
             actions = 0*actions
-
-        _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
-        dof_states = gymtorch.wrap_tensor(_dof_states)
+        # for i in range(12):
+        #     actions[0][i] = -5 * default_joint_angles[i]
+        # _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
+        # dof_states = gymtorch.wrap_tensor(_dof_states)
         # actions[0] = 4*torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         # actions = 0 * actions
         print("actions: ", actions)
@@ -184,10 +186,10 @@ def play(args):
         
 
             # env.gym.set_dof_target_positions(env.envs[0], 0, dof_state_list ,1)
-        print("DOF StateList New: ", env.gym.get_actor_dof_states(env.envs[0], 0, 1))
-        _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
-        dof_states = gymtorch.wrap_tensor(_dof_states)
-        print("DOF State New: ", dof_states)
+        # print("DOF StateList New: ", env.gym.get_actor_dof_states(env.envs[0], 0, 1))
+        # _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
+        # dof_states = gymtorch.wrap_tensor(_dof_states)
+        # print("DOF State New: ", dof_states)
         
         obs[0, 9] = command[0]
         obs[0, 10] = command[1]
