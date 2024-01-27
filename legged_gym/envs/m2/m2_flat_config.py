@@ -32,7 +32,7 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 
 class M2FlatCfg( LeggedRobotCfg ):
     class init_state( LeggedRobotCfg.init_state ):
-        pos = [0.0, 0.0, 0.6] # x,y,z [m]
+        pos = [0.0, 0.0, 0.5] # x,y,z [m]
 
 
         default_joint_angles = { # = target angles [rad] when action = 0.0
@@ -57,13 +57,14 @@ class M2FlatCfg( LeggedRobotCfg ):
         # measure_heights = False
         # mesh_type = "trimesh"
         measure_heights = False
-        # svan_terrain = True
+        svan_terrain = False
         svan_curriculum = False
         # curriculum = True
-        # terrain_length = 16.
+        terrain_length = 16.
         # max_init_terrain_level = 0
-        # terrain_width = 16.
-        num_rows = 4 # number of terrain rows (levels)
+        visualize_force = False
+        terrain_width = 4
+        num_rows = 3 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
     class control( LeggedRobotCfg.control ):
@@ -90,8 +91,8 @@ class M2FlatCfg( LeggedRobotCfg ):
         foot_name = "foot"
         fix_base_link = False
         penalize_contacts_on = ["thigh", "calf"]
-        # terminate_after_contacts_on = ["base", "hip"]
-        terminate_after_contacts_on = []
+        terminate_after_contacts_on = ["base", "hip"]
+        # terminate_after_contacts_on = []
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
 
@@ -102,21 +103,21 @@ class M2FlatCfg( LeggedRobotCfg ):
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.3
-        only_positive_rewards = True
+        base_height_target = 0.28
+        only_positive_rewards = False
         class scales( LeggedRobotCfg.rewards.scales ):
-            torques = -0.000
+            torques = -0.0005
             dof_pos_limits = -0.0
             termination = -0.0
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
-            lin_vel_z = -0.01
+            lin_vel_z = -0.05
             ang_vel_xy = -0.0
             # orientation = -0.
             dof_vel = -0.
             dof_acc = -2.5e-7
-            base_height = -1 
-            feet_air_time =  1.0
+            base_height = -0.00
+            feet_air_time =  2
             collision = -0.
             feet_stumble = -0.0 
             action_rate = -0.0

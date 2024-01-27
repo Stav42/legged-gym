@@ -4,6 +4,37 @@
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
   name="SVANM2_URDF">
+  <material name="black">
+    <color rgba="0.1059 0.1059 0.1059 1.0"/>
+  </material>
+  <material name="blue">
+    <color rgba="0.0 0.0 0.8 1.0"/>
+  </material>
+  <material name="green">
+    <color rgba="0.345 0.4823 0.294 1.0"/>
+  </material>
+  <material name="grey_shank">
+    <color rgba="0.2078 0.2078 0.2078 1.0"/>
+  </material>
+    <material name="grey_actuator">
+    <color rgba="0.5196 0.5196 0.5196 1.0"/>
+  </material>
+  <material name="silver">
+    <color rgba="0.913725490196 0.913725490196 0.847058823529 1.0"/>
+  </material>
+  <material name="orange">
+    <!-- <color rgba="1.0 0.423529411765 0.0392156862745 1.0"/> -->
+    <color rgba="0.12 0.15 0.2 1.0"/>
+  </material>
+  <material name="brown">
+    <color rgba="0.870588235294 0.811764705882 0.764705882353 1.0"/>
+  </material>
+  <material name="red">
+    <color rgba="0.8 0.0 0.0 1.0"/>
+  </material>
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
   <link name="base">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -35,10 +66,7 @@
           filename="../meshes/BASE.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.75294 0.75294 0.75294 1" />
-      </material>
+        name="green"/>
     </visual>
     <collision>
       <origin
@@ -66,10 +94,7 @@
           filename="../meshes/RF_HIP.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.75294 0.75294 0.75294 1" />
-      </material>
+        name="grey_actuator"/>
     </visual>
     <collision>
       <origin
@@ -115,10 +140,7 @@
           filename="../meshes/RF_THIGH.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.75294 0.75294 0.75294 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -161,10 +183,7 @@
           filename="../meshes/RF_SHANK.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.75294 0.75294 0.75294 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -215,10 +234,7 @@
           filename="../meshes/LF_HIP.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_actuator"/>
     </visual>
     <collision>
       <origin
@@ -261,10 +277,7 @@
           filename="../meshes/LF_THIGH.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -307,10 +320,7 @@
           filename="../meshes/LF_SHANK.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -363,10 +373,7 @@
           filename="../meshes/RH_HIP.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="1 1 1 1" />
-      </material>
+        name="grey_actuator"/>
     </visual>
     <collision>
       <origin
@@ -409,10 +416,7 @@
           filename="../meshes/RH_THIGH.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -455,10 +459,7 @@
           filename="../meshes/RH_SHANK.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -510,10 +511,7 @@
           filename="../meshes/LH_HIP.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_actuator"/>
     </visual>
     <collision>
       <origin
@@ -556,10 +554,7 @@
           filename="../meshes/LH_THIGH.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -602,10 +597,7 @@
           filename="../meshes/LH_SHANK.STL" />
       </geometry>
       <material
-        name="">
-        <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
-      </material>
+        name="grey_shank"/>
     </visual>
     <collision>
       <origin
@@ -645,6 +637,8 @@
         <geometry>
           <sphere radius="0.022" />
         </geometry>
+              <material
+        name="grey_shank"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -665,6 +659,8 @@
         <geometry>
           <sphere radius="0.022" />
         </geometry>
+              <material
+        name="grey_shank"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -685,6 +681,8 @@
         <geometry>
           <sphere radius="0.022" />
         </geometry>
+              <material
+        name="grey_shank"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -705,6 +703,8 @@
         <geometry>
           <sphere radius="0.022" />
         </geometry>
+        <material
+        name="grey_shank"/>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />

@@ -79,7 +79,10 @@ class LeggedRobot(BaseTask):
         self._init_buffers()
         self._prepare_reward_function()
         self.init_done = True
-        self.perturb_envs = self.num_envs
+        # self.perturb_envs = self.num_envs
+        self.perturb_envs = 200
+        self.dynamics_counter = 0
+        self.reset_interval = 10
 
 
 
@@ -115,7 +118,7 @@ class LeggedRobot(BaseTask):
             Force of given magnitude applied in a random location in the body part
         """
 
-        print("env_perturb: ", env_perturb)
+        # print("env_perturb: ", env_perturb)
 
         ##  # Environments to be perturbed: self.perturb_envs 
         low = -0.1; high = 0.1
@@ -140,7 +143,7 @@ class LeggedRobot(BaseTask):
         rb_positions = states[:, 0:3].view(self.num_envs, self.num_bodies, 3)
         # print("Position of rigid bodies: ", rb_positions)
         body_disturb = np.random.uniform(0, 16, self.perturb_envs).astype(int)
-        print("Body Disturb: ", body_disturb)
+        # print("Body Disturb: ", body_disturb)
         ## Forces to be applied. Force - 3x20
         low = 0; high = 1
         v1 = np.random.uniform(low, high, self.perturb_envs)
@@ -149,10 +152,10 @@ class LeggedRobot(BaseTask):
         low = 0; high = 1
         v3 = np.random.uniform(low, high, self.perturb_envs)
         force = mag * np.stack((v1, v2, v3)).T
-        print("force shape: ", force.shape)
+        # print("force shape: ", force.shape)
 
         force_ar = torch.zeros((self.num_envs, int(self.num_bodies), 3), device=self.device, dtype=torch.float)
-        print("Shape of sliced force array: ", force_ar[env_perturb, body_disturb, :].shape)
+        # print("Shape of sliced force array: ", force_ar[env_perturb, body_disturb, :].shape)
         force_ar[env_perturb, body_disturb, :] = torch.tensor(force, device=self.device, dtype=torch.float)
         force_pos = rb_positions.clone()
         # print("Shape of force_array: ", force_ar.shape)
@@ -160,7 +163,7 @@ class LeggedRobot(BaseTask):
 
         self.gym.apply_rigid_body_force_at_pos_tensors(self.sim, gymtorch.unwrap_tensor(force_ar), gymtorch.unwrap_tensor(force_pos), gymapi.ENV_SPACE)
 
-        if self.viewer:
+        if self.viewer and self.cfg.terrain.visualize_force:
             force_end = force_pos[env_perturb, body_disturb, :] + 0.1 * force_ar[env_perturb, body_disturb]
             color = gymapi.Vec3(1.0, 0.0, 0.0)
             for index, env_index in enumerate(env_perturb):
@@ -242,7 +245,9 @@ class LeggedRobot(BaseTask):
         # new spawn. And set parameters as well
         self._reset_dofs(env_ids)
         self._reset_root_states(env_ids)
-        if self.cfg.terrain.svan_curriculum:
+        self.dynamics_counter+=1
+        # print("Dynamics Counter: ", self.dynamics_counter)
+        if self.cfg.terrain.svan_curriculum and self.dynamics_counter%self.reset_interval == 0:
             self._reset_env_dynamics(env_ids)
         self._resample_commands(env_ids)
 
@@ -530,7 +535,6 @@ class LeggedRobot(BaseTask):
         """
 
         # Set Friction Properties of restored environments
-
         for env_idx in env_ids:
             actor_count = self.gym.get_actor_count(self.envs[env_idx])
             # print(f"Actor Count: {actor_count} in environment: {env_idx}")
@@ -661,7 +665,23 @@ class LeggedRobot(BaseTask):
         if not self.cfg.terrain.svan_curriculum:
             print("Curriculum Disabled")
             self.terrain_levels[env_ids] = torch.randint(0, max_init_level+1, (len(env_ids),), device=self.device)
-        self.env_origins[env_ids] = self.terrain_origins[self.terrain_levels[env_ids], self.terrain_types[env_ids]]
+        
+        level_dict = {
+            0: [0, 0],
+            1: [1, 0],
+            2: [2, 0],
+            3: [0, 1],
+            4: [1, 1],
+            5: [2, 1],
+            6: [0, 2],
+            7: [1, 2],
+            8: [2, 2],
+            9: [0, 3],
+            10: [1, 3],
+            11: [2, 3],
+        }
+
+        self.env_origins[env_ids] = self.terrain_origins[level_dict[self.terrain_levels[env_ids]][0], level_dict[self.terrain_levels[env_ids]][1]]
 
     def update_command_curriculum(self, env_ids):
         """ Implements a curriculum of increasing commands
@@ -952,13 +972,22 @@ class LeggedRobot(BaseTask):
             self.custom_origins = True
             self.env_origins = torch.zeros(self.num_envs, 3, device=self.device, requires_grad=False)
             # put robots at the origins defined by the terrain
-            max_init_level = self.cfg.terrain.max_init_terrain_level
+            max_init_level = self.cfg.terrain.max_init_terrain_level + self.cfg.terrain.num_rows*self.cfg.terrain.num_cols
+            # max_init_level = self.cfg.terrain.max_init_terrain_level
             if not self.cfg.terrain.curriculum: max_init_level = self.cfg.terrain.num_rows - 1
             self.terrain_levels = torch.randint(0, max_init_level+1, (self.num_envs,), device=self.device)
             self.terrain_types = torch.div(torch.arange(self.num_envs, device=self.device), (self.num_envs/self.cfg.terrain.num_cols), rounding_mode='floor').to(torch.long)
-            self.max_terrain_level = self.cfg.terrain.num_rows
+            self.max_terrain_level = self.cfg.terrain.num_rows*self.cfg.terrain.num_cols
             self.terrain_origins = torch.from_numpy(self.terrain.env_origins).to(self.device).to(torch.float)
             self.env_origins[:] = self.terrain_origins[self.terrain_levels, self.terrain_types]
+            first_two_elements = torch.rand(self.num_envs, 2) * 20 - 10  # Scale to range [-10, 10]
+            # Create an array of zeros for the third element
+            third_element = torch.zeros(self.num_envs, 1)
+            # Concatenate to form the final 4000x3 matrix
+            final_matrix = torch.cat((first_two_elements, third_element), dim=1).to(device='cuda:0')
+            self.env_origins[:] = self.env_origins[:] + final_matrix[:] 
+            # self.env_origins[:] = self.terrain_origins[0, 0]             
+
         else:
             self.custom_origins = False
             self.env_origins = torch.zeros(self.num_envs, 3, device=self.device, requires_grad=False)
