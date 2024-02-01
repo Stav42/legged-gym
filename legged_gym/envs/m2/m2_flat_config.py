@@ -109,7 +109,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0005
             dof_pos_limits = -0.0
-            termination = -10.0
+            termination = -100.0
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
             lin_vel_z = -0.05

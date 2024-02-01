@@ -283,12 +283,14 @@ class LeggedRobot(BaseTask):
                 penalty_level = self.penalty_level[name]
                 env_ids = self.level_dist[penalty_level]
                 rew = self.reward_functions[i](env_ids) * self.reward_scales[name]
-                if self.common_step_counter %30 == 0:
+                if self.common_step_counter % 30 == 0:
                     print(f"{name} penalty applied for env {env_ids[0]} with level {self.terrain_levels[env_ids[0]]}")
+                self.rew_buf[env_ids] += rew
+                self.episode_sums[name][env_ids] += rew
             elif name not in self.penalty_level:
                 rew = self.reward_functions[i]() * self.reward_scales[name]
-            self.rew_buf += rew
-            self.episode_sums[name] += rew
+                self.rew_buf += rew
+                self.episode_sums[name] += rew
         if self.cfg.rewards.only_positive_rewards:
             self.rew_buf[:] = torch.clip(self.rew_buf[:], min=0.)
         # add termination reward after clipping
