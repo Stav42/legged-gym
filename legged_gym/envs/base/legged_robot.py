@@ -247,7 +247,7 @@ class LeggedRobot(BaseTask):
         self._reset_root_states(env_ids)
         self.dynamics_counter+=1
         # print("Dynamics Counter: ", self.dynamics_counter)
-        if self.cfg.terrain.svan_curriculum and self.dynamics_counter%self.reset_interval == 0:
+        if self.cfg.terrain.svan_curriculum:
             self._reset_env_dynamics(env_ids)
         self._resample_commands(env_ids)
 
@@ -279,11 +279,13 @@ class LeggedRobot(BaseTask):
         self.rew_buf[:] = 0.
         for i in range(len(self.reward_functions)):
             name = self.reward_names[i]
-            if self.reward_scales[name] < 0 and name in self.penalty_level:
+            if self.reward_scales[name] < 0 and name in self.penalty_level and len(self.level_dist[self.penalty_level[name]])>0:
                 penalty_level = self.penalty_level[name]
                 env_ids = self.level_dist[penalty_level]
                 rew = self.reward_functions[i](env_ids) * self.reward_scales[name]
-            else:
+                if self.common_step_counter %30 == 0:
+                    print(f"{name} penalty applied for env {env_ids[0]} with level {self.terrain_levels[env_ids[0]]}")
+            elif name not in self.penalty_level:
                 rew = self.reward_functions[i]() * self.reward_scales[name]
             self.rew_buf += rew
             self.episode_sums[name] += rew
@@ -529,39 +531,40 @@ class LeggedRobot(BaseTask):
             for index in foot_indices:
                 shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[int(index/4 - 1)], level)
             self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_prop)
+            # print(f"Env {env_idx} dynamics parameters reset")
             self.gym.refresh_rigid_body_state_tensor(self.sim) 
 
 
     def _populate_shape_properties(self, prop, level):
     
         #Level 1:
-        if level%3 == 1:
+        if level%3 == 0:
             mean = 0.6
             range_val = 0.1
             prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
-            mean = 0
-            range_val = 0.1
+            mean = 0.05
+            range_val = 0.05
             prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         #Level 2:
-        elif level%3 == 2:
+        elif level%3 == 1:
             mean = 0.6
             range_val = 0.3
             prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
             
-            mean = 0
-            range_val = 0.3
+            mean = 0.15
+            range_val = 0.15
             prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         #Level 3:
-        elif level%3 == 0:
+        elif level%3 == 2:
             mean = 0.6
             range_val = 0.5
             prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
-            mean = 0
-            range_val = 0.6
+            mean = 0.3
+            range_val = 0.3
             prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         return prop
@@ -587,7 +590,7 @@ class LeggedRobot(BaseTask):
         distance = torch.norm(self.root_states[env_ids, :2] - self.env_origins[env_ids, :2], dim=1)
         # robots that walked far enough progress to harder terains
         # print(f"Move Up Criteria 1 Distance to be travelled (length/breadth): {self.terrain.env_length / 2}/{self.terrain.env_width / 2}\n")
-        move_up = distance > self.terrain.env_length / 4
+        move_up = distance > self.terrain.env_length / 6
         # print(f"Move Up Criteria 2 Distance to be travelled (length/breadth) Greater Than: {torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.3}")
         # move_up = (distance > torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.3)
         # robots that walked less than half of their required distance go to simpler terrains
@@ -621,6 +624,12 @@ class LeggedRobot(BaseTask):
         L1 = [item[0] for item in values]
         L2 = [item[1] for item in values]
         self.env_origins[env_ids] = self.terrain_origins[L1, L2]
+        first_two_elements = torch.rand(len(env_ids), 2) * 30 - 15  # Scale to range [-10, 10]
+        # Create an array of zeros for the third element
+        third_element = torch.zeros(len(env_ids), 1)
+        # Concatenate to form the final 4000x3 matrix
+        final_matrix = torch.cat((first_two_elements, third_element), dim=1).to(device='cuda:0')
+        self.env_origins[env_ids] = self.env_origins[env_ids] + final_matrix[:] 
     
     def update_command_curriculum(self, env_ids):
         """ Implements a curriculum of increasing commands
@@ -921,7 +930,6 @@ class LeggedRobot(BaseTask):
             # self.max_terrain_level = self.cfg.terrain.num_rows*self.cfg.terrain.num_cols
             self.max_terrain_level = self.cfg.terrain.max_terrain_level
             self.terrain_origins = torch.from_numpy(self.terrain.env_origins).to(self.device).to(torch.float)
-            print(f"Terrain levels: {self.terrain_levels} and Terrain Types: {self.terrain_types}")
             self.env_origins[:] = self.terrain_origins[self.terrain_levels, self.terrain_types]
             first_two_elements = torch.rand(self.num_envs, 2) * 20 - 10  # Scale to range [-10, 10]
             # Create an array of zeros for the third element

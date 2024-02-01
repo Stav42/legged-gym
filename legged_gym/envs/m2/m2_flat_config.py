@@ -60,11 +60,11 @@ class M2FlatCfg( LeggedRobotCfg ):
         svan_terrain = True
         svan_curriculum = True
         curriculum = True
-        terrain_length = 32.
+        terrain_length = 45.
         # max_init_terrain_level = 0
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 32
+        terrain_width = 45
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -109,20 +109,20 @@ class M2FlatCfg( LeggedRobotCfg ):
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0005
             dof_pos_limits = -0.0
-            termination = -100.0
+            termination = -10.0
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
             lin_vel_z = -0.05
             ang_vel_xy = -0.0
             # orientation = -0.
-            orientation_selective = -0.
-            dof_vel_selective = -0.
+            orientation_selective = -2e-7
+            dof_vel_selective = -2e-5
             dof_acc = -2.5e-7
             base_height = -0.00
             feet_air_time =  2
             collision = -0.
             feet_stumble = -0.0 
-            action_rate_selective = -0.0
+            action_rate_selective = -2e-3
             stand_still = -0.
         
         penalty_level = {
