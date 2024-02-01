@@ -170,16 +170,15 @@ class Terrain:
                                 vertical_scale=self.cfg.vertical_scale,
                                 horizontal_scale=self.cfg.horizontal_scale)
        
-        if   col % 4 == 0:
+        if   col % 4 == 3:
             terrain_utils.random_uniform_terrain(terrain, min_height=-0.05, max_height=0.05, step=0.005, downsampled_scale=0.2)
-        elif col % 4 == 1:
-            terrain_utils.spherical_indentation_terrain(terrain)
         elif col % 4 == 2:
+            terrain_utils.spherical_indentation_terrain(terrain)
+        elif col % 4 == 1:
             terrain_utils.wave_terrain(terrain, amplitude = 0.1)
-        elif col % 4 == 3:
+        elif col % 4 == 0:
             terrain_utils.wave_terrain(terrain, amplitude = 0.01)
 
-        
         return terrain
 
     def add_terrain_to_map(self, terrain, row, col):

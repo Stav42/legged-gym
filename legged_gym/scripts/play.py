@@ -191,9 +191,9 @@ def play(args):
         # dof_states = gymtorch.wrap_tensor(_dof_states)
         # print("DOF State New: ", dof_states)
         
-        # obs[0, 9] = command[0]
-        # obs[0, 10] = command[1]
-        # obs[0, 11] = command[2]
+        obs[0, 9] = command[0]
+        obs[0, 10] = command[1]
+        obs[0, 11] = command[2]
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]

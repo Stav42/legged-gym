@@ -233,7 +233,7 @@ class LeggedRobot(BaseTask):
         # Map levels to (terrain + randomized dynamics)
 
         ## Update terrain Curriculum redefines the origin of the environments
-        if self.cfg.terrain.curriculum:
+        if self.cfg.terrain.curriculum or self.cfg.terrain.svan_curriculum:
             self._update_terrain_curriculum(env_ids)
 
         # avoid updating command curriculum at each step since the maximum command is common to all envs
@@ -279,7 +279,12 @@ class LeggedRobot(BaseTask):
         self.rew_buf[:] = 0.
         for i in range(len(self.reward_functions)):
             name = self.reward_names[i]
-            rew = self.reward_functions[i]() * self.reward_scales[name]
+            if self.reward_scales[name] < 0 and name in self.penalty_level:
+                penalty_level = self.penalty_level[name]
+                env_ids = self.level_dist[penalty_level]
+                rew = self.reward_functions[i](env_ids) * self.reward_scales[name]
+            else:
+                rew = self.reward_functions[i]() * self.reward_scales[name]
             self.rew_buf += rew
             self.episode_sums[name] += rew
         if self.cfg.rewards.only_positive_rewards:
@@ -293,8 +298,7 @@ class LeggedRobot(BaseTask):
     def compute_observations(self):
         """ Computes observations
         """
-        # self.commands[:, :3] = 0
-        # self.commands[:, 1] = 0.5
+
         self.obs_buf = torch.cat((  self.base_lin_vel * self.obs_scales.lin_vel,
                                     self.base_ang_vel  * self.obs_scales.ang_vel,
                                     self.projected_gravity,
@@ -303,24 +307,6 @@ class LeggedRobot(BaseTask):
                                     self.dof_vel * self.obs_scales.dof_vel,
                                     self.actions
                                     ),dim=-1)
-        # print("Default Pose: ", self.default_dof_pos)
-        # _dof_states = self.gym.acquire_dof_state_tensor(self.sim)
-        # dof_states = gymtorch.wrap_tensor(_dof_states)
-        # print("DOF State Inside: ", dof_states)
-        # print("Delta Pos ", self.dof_pos)
-        # print("DOF Names: ", self.dof_names)
-
-        # print("Observations: \n")
-        # print("Observation DOF: ", (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)
-        # print("Base Linear Velocity: ", self.base_lin_vel * self.obs_scales.lin_vel)
-        # print("Base Linear Velocity From root state: ", self.root_states[0, 7:10] * self.obs_scales.lin_vel)
-        # print("Base Angular Velocity: ", self.base_ang_vel * self.obs_scales.ang_vel)
-        # print("Projected Gravity: ", self.projected_gravity)
-        # print("Commands: ", self.commands[:, :3] * self.commands_scale)
-        # print("DOF Pose Delta: ", (self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)
-        # print("DOF Velocity: ", self.dof_vel * self.obs_scales.dof_vel)
-        # print("Actions: ", self.actions)
-
         # add perceptive inputs if not blind
         if self.cfg.terrain.measure_heights:
             heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements
@@ -526,7 +512,7 @@ class LeggedRobot(BaseTask):
 
     def _reset_env_dynamics(self, env_ids):
         """ Resets dynamic parameters of selected environmments
-            Mass, Inertia parameters randomized in [-min, man] %
+            Mass, Inertia parameters randomized in [-min, man] 
             Min, Max chosen through stochastic sampling
             Friction, Compliance parameters changed
             All changed according to level
@@ -534,25 +520,7 @@ class LeggedRobot(BaseTask):
             env_ids (List[int]): Environment ids
         """
 
-        # Set Friction Properties of restored environments
         for env_idx in env_ids:
-            actor_count = self.gym.get_actor_count(self.envs[env_idx])
-            # print(f"Actor Count: {actor_count} in environment: {env_idx}")
-            actor_rigid_body_count = self.gym.get_actor_rigid_body_count(self.envs[env_idx], actor_count-1)
-            # print(f"Actor Rigid Body Count: {actor_rigid_body_count} in environment: {env_idx}")
-            actor_rigid_shape_count = self.gym.get_actor_rigid_shape_count(self.envs[env_idx], actor_count-1)
-            # print(f"Actor Rigid Shape Count: {actor_rigid_shape_count} in environment: {env_idx}")
-
-            ## Rigid Shape Properties: Compliance, Contact Offset, static friction coeff, restitution, rest offset, rolling friction, torsion friction
-            ## Rigid Body Properties: COM position, Inertia Relative to COM, Mass value
-            shape_properties = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-
-            ## Randomize Mass of Quadruped base. Random sample from a higher range as difficulty increases. Uniform distrbutino mean increases
-            ## Randomize the feet friction. Friction uniform distribution mean and range increases with level
-            ## Randomize the inertia of the base. Increase the range of sampling. Keep mean same. Look at how this would be done.
-            # print(f"Level of environment {env_idx}: {self.terrain_levels[env_idx]}")
-            # print(f"Dynamics Set Accordingly: ")
-            names = self.gym.get_actor_rigid_body_names(self.envs[env_idx], self.actor_handles[env_idx])
 
             ## Randomizing foot frictions
             foot_indices = [4, 8, 12, 16]
@@ -561,74 +529,40 @@ class LeggedRobot(BaseTask):
             for index in foot_indices:
                 shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[int(index/4 - 1)], level)
             self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_prop)
-            # print(f"Foot {names[4]}: Friction: {shape_properties[4].friction} Torsional Friction: {shape_properties[4].torsion_friction}")
-            # print(f"Foot {names[8]}: Friction: {shape_properties[8].friction} Torsional Friction: {shape_properties[8].torsion_friction}")
-            # print(f"Foot {names[12]}: Friction: {shape_properties[12].friction} Torsional Friction: {shape_properties[12].torsion_friction}")
-            # print(f"Foot {names[16]}: Friction: {shape_properties[16].friction} Torsional Friction: {shape_properties[16].torsion_friction}")
             self.gym.refresh_rigid_body_state_tensor(self.sim) 
-            states = gymtorch.wrap_tensor(self.gym.acquire_rigid_body_state_tensor(self.sim))
-            rigid_body_prop = self.gym.get_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            rb_positions = states[:, 0:3].view(self.num_envs, self.num_bodies, 3)
-            # for i in range(17):
-            #     print(f"Name: {names[i]} Actual COM Position: {rb_positions[env_idx, i]}")
-            #     print(f"COM Property from get_actor_rigid_body: ", rigid_body_prop[i].com, "\n\n\n\n")
-
-            # rigid_body_prop = self.gym.get_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            # print(f"Rigid Body Property Base Mass: {rigid_body_prop[0].mass}")
-            # rigid_body_prop[0] = self._populate_rigid_body_properties(rigid_body_prop[0], level)
-            # success = self.gym.set_actor_rigid_body_properties(self.envs[env_idx], self.actor_handles[env_idx], rigid_body_prop, recomputeInertia = True)
-
-    def _populate_rigid_body_properties(self, prop, level):
-        
-        if level == 0:
-            mean = 0
-            range_val = 0.2
-            low = mean - range_val
-            high = mean + range_val
-            prop.mass = np.random.uniform(self.default_base_rigid_body_props.mass + low, self.default_base_rigid_body_props.mass + high)
-        
-        elif level == 1:
-            mean = 0.3
-            range_val = 0.4
-            low = mean - range_val
-            high = mean + range_val
-            prop.mass = np.random.uniform(self.default_base_rigid_body_props.mass + low, self.default_base_rigid_body_props.mass + high)
-        
-        elif level == 2:
-            mean = 0.5
-            range_val = 0.8
-            low = mean - range_val
-            high = mean + range_val
-            prop.mass = np.random.uniform(self.default_base_rigid_body_props.mass + low, self.default_base_rigid_body_props.mass + high)
-
-        return prop
 
 
     def _populate_shape_properties(self, prop, level):
     
         #Level 1:
-        if level == 0:
+        if level%3 == 1:
             mean = 0.6
             range_val = 0.1
-            low = mean - range_val
-            high = mean + range_val
-            prop.friction = np.random.uniform(low, high)
+            prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
+
+            mean = 0
+            range_val = 0.1
+            prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         #Level 2:
-        elif level == 1:
+        elif level%3 == 2:
             mean = 0.6
             range_val = 0.3
-            low = mean - range_val
-            high = mean + range_val
-            prop.friction = np.random.uniform(low, high)
-        
+            prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
+            
+            mean = 0
+            range_val = 0.3
+            prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
+
         #Level 3:
-        elif level == 2:
+        elif level%3 == 0:
             mean = 0.6
             range_val = 0.5
-            low = mean - range_val
-            high = mean + range_val
-            prop.friction = np.random.uniform(low, high)
+            prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
+
+            mean = 0
+            range_val = 0.6
+            prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         return prop
 
@@ -652,9 +586,12 @@ class LeggedRobot(BaseTask):
             
         distance = torch.norm(self.root_states[env_ids, :2] - self.env_origins[env_ids, :2], dim=1)
         # robots that walked far enough progress to harder terains
-        move_up = distance > self.terrain.env_length / 2
-        move_up = (distance > torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.3)
+        # print(f"Move Up Criteria 1 Distance to be travelled (length/breadth): {self.terrain.env_length / 2}/{self.terrain.env_width / 2}\n")
+        move_up = distance > self.terrain.env_length / 4
+        # print(f"Move Up Criteria 2 Distance to be travelled (length/breadth) Greater Than: {torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.3}")
+        # move_up = (distance > torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.3)
         # robots that walked less than half of their required distance go to simpler terrains
+        # print(f"Move Down Criteria 1 Distance to be travelled (length/breadth) Less Than: {torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.1}")
         move_down = (distance < torch.norm(self.commands[env_ids, :2], dim=1)*self.max_episode_length_s*0.1) * ~move_up
         self.terrain_levels[env_ids] += 1 * move_up - 1 * move_down
         # Robots that solve the last level are sent to a random one
@@ -662,27 +599,29 @@ class LeggedRobot(BaseTask):
                                                    torch.randint_like(self.terrain_levels[env_ids], self.max_terrain_level),
                                                    torch.clip(self.terrain_levels[env_ids], 0)) # (the minumum level is zero)
         
+        for i in range(12):
+            self.level_dist[i] = np.where(self.terrain_levels.cpu() == i)[0].tolist()
+
         if not self.cfg.terrain.svan_curriculum:
             print("Curriculum Disabled")
             self.terrain_levels[env_ids] = torch.randint(0, max_init_level+1, (len(env_ids),), device=self.device)
         
         level_dict = {
-            0: [0, 0],
-            1: [1, 0],
-            2: [2, 0],
-            3: [0, 1],
-            4: [1, 1],
-            5: [2, 1],
-            6: [0, 2],
-            7: [1, 2],
-            8: [2, 2],
-            9: [0, 3],
-            10: [1, 3],
-            11: [2, 3],
+            0: [0, 0],  1: [0, 0],  2: [0, 0],
+            3: [0, 1],  4: [0, 1],  5: [0, 1],
+            6: [0, 2],  7: [0, 2],  8: [0, 2],
+            9: [0, 3],  10: [0, 3], 11: [0, 3],
         }
 
-        self.env_origins[env_ids] = self.terrain_origins[level_dict[self.terrain_levels[env_ids]][0], level_dict[self.terrain_levels[env_ids]][1]]
-
+        # print(f"terrain_levels[env_ids][0]: {self.terrain_levels[env_ids]}")
+        
+        # self.env_origins[env_ids] = self.terrain_origins[level_dict[self.terrain_levels[env_ids]][0], level_dict[self.terrain_levels[env_ids]][1]]
+        # print(f"terrain_levels[env_ids][0]: {self.terrain_levels[env_ids]}")
+        values = [level_dict[key.item()] for key in self.terrain_levels[env_ids]]
+        L1 = [item[0] for item in values]
+        L2 = [item[1] for item in values]
+        self.env_origins[env_ids] = self.terrain_origins[L1, L2]
+    
     def update_command_curriculum(self, env_ids):
         """ Implements a curriculum of increasing commands
 
@@ -764,6 +703,8 @@ class LeggedRobot(BaseTask):
         if self.cfg.terrain.measure_heights:
             self.height_points = self._init_height_points()
         self.measured_heights = 0
+        self.penalty_level = self.cfg.rewards.penalty_level
+        self.level_dist = [[] for _ in range(self.cfg.terrain.max_terrain_level)]
 
         # print("Observation Scaling: ", self.obs_scales.lin_vel)
         
@@ -975,10 +916,12 @@ class LeggedRobot(BaseTask):
             max_init_level = self.cfg.terrain.max_init_terrain_level + self.cfg.terrain.num_rows*self.cfg.terrain.num_cols
             # max_init_level = self.cfg.terrain.max_init_terrain_level
             if not self.cfg.terrain.curriculum: max_init_level = self.cfg.terrain.num_rows - 1
-            self.terrain_levels = torch.randint(0, max_init_level+1, (self.num_envs,), device=self.device)
+            self.terrain_levels = torch.randint(0, 1, (self.num_envs,), device=self.device)
             self.terrain_types = torch.div(torch.arange(self.num_envs, device=self.device), (self.num_envs/self.cfg.terrain.num_cols), rounding_mode='floor').to(torch.long)
-            self.max_terrain_level = self.cfg.terrain.num_rows*self.cfg.terrain.num_cols
+            # self.max_terrain_level = self.cfg.terrain.num_rows*self.cfg.terrain.num_cols
+            self.max_terrain_level = self.cfg.terrain.max_terrain_level
             self.terrain_origins = torch.from_numpy(self.terrain.env_origins).to(self.device).to(torch.float)
+            print(f"Terrain levels: {self.terrain_levels} and Terrain Types: {self.terrain_types}")
             self.env_origins[:] = self.terrain_origins[self.terrain_levels, self.terrain_types]
             first_two_elements = torch.rand(self.num_envs, 2) * 20 - 10  # Scale to range [-10, 10]
             # Create an array of zeros for the third element
@@ -1114,6 +1057,10 @@ class LeggedRobot(BaseTask):
         # Penalize non flat base orientation
         return torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1)
 
+    def _reward_orientation_selective(self, env_ids):
+        # Penalize non flat base orientation
+        return torch.sum(torch.square(self.projected_gravity[env_ids, :2]), dim=1)
+
     def _reward_base_height(self):
         # Penalize base height away from target
         base_height = torch.mean(self.root_states[:, 2].unsqueeze(1) - self.measured_heights, dim=1)
@@ -1127,6 +1074,10 @@ class LeggedRobot(BaseTask):
         # Penalize dof velocities
         return torch.sum(torch.square(self.dof_vel), dim=1)
     
+    def _reward_dof_vel_selective(self, env_ids):
+        # Penalize dof velocities
+        return torch.sum(torch.square(self.dof_vel[env_ids]), dim=1)
+    
     def _reward_dof_acc(self):
         # Penalize dof accelerations
         return torch.sum(torch.square((self.last_dof_vel - self.dof_vel) / self.dt), dim=1)
@@ -1134,6 +1085,10 @@ class LeggedRobot(BaseTask):
     def _reward_action_rate(self):
         # Penalize changes in actions
         return torch.sum(torch.square(self.last_actions - self.actions), dim=1)
+
+    def _reward_action_rate_selective(self, env_ids):
+        # Penalize changes in actions
+        return torch.sum(torch.square(self.last_actions[env_ids] - self.actions[env_ids]), dim=1)
     
     def _reward_collision(self):
         # Penalize collisions on selected bodies
