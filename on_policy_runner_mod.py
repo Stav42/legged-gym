@@ -102,26 +102,45 @@ class OnPolicyRunner:
         tot_iter = self.current_learning_iteration + num_learning_iterations
         range_start = 0
         range_end = self.env.num_envs
+        total_steps = 0
+        prev_env_samples = None
+        sampled_envs = None
+        stance_num_envs = self.env.num_envs/self.env.cfg.commands.stance_env_num_den
         for it in range(self.current_learning_iteration, tot_iter):
             start = time.time()
             # Rollout
-            pert_interval = int(np.random.uniform(20, 40))
+            pert_interval = int(np.random.uniform(200, 400))
             # print("Pert_Interval: ", pert_interval)
             with torch.inference_mode():
                 for i in range(self.num_steps_per_env):
                     actions = self.alg.act(obs, critic_obs)
                     obs, privileged_obs, rewards, dones, infos = self.env.step(actions)
                     critic_obs = privileged_obs if privileged_obs is not None else obs
+                    total_steps += 1
+                    # if total_steps%1000 == 0:
+                    #     #Unfortunate souls
+                    #     sampled_envs = np.random.randint(0, self.env.num_envs, 150)
+                    #     self.env.commands[sampled_envs, :] = 0
+                    # if total_steps%1000 == 20:
+                    #     if sampled_envs is not None:
+                    #         self.env._resample_commands(sampled_envs)
+                    if total_steps%400 == 0:
+                        last_stance_set = total_steps
+                        stance_envs = np.random.randint(0, self.env.num_envs, stance_env_num)
+                        self.env.env_stance_mode[stance_envs] = 1
+                    if (total_steps-last_stance_set)%225 == 0:
+                        self.env.env_stance_mode[:] = 0                  
+
                     obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
                     self.alg.process_env_step(rewards, dones, infos)
                     # Apply Force every n step:
-
-                    # if i % pert_interval == 0:
-                    #     if self.env.viewer:
-                    #         self.env.gym.clear_lines(self.env.viewer)
-                    #     perturb_envs = np.random.choice(range(range_start, range_end), self.env.perturb_envs, replace=True)
-                    #     mag = np.random.uniform(5, 10)
-                    #     self.env.apply_perturbation(perturb_envs, mag) 
+                    # print(f"Current Step Home Directory")
+                    if i % pert_interval == 0:
+                        if self.env.viewer:
+                            self.env.gym.clear_lines(self.env.viewer)
+                        perturb_envs = np.random.choice(range(range_start, range_end), self.env.perturb_envs, replace=True)
+                        mag = np.random.uniform(10, 20)
+                        self.env.apply_perturbation(perturb_envs, mag) 
                     if self.log_dir is not None:
                         # Book keeping
                         if 'episode' in infos:
@@ -221,6 +240,18 @@ class OnPolicyRunner:
                        f"""{'ETA:':>{pad}} {self.tot_time / (locs['it'] + 1) * (
                                locs['num_learning_iterations'] - locs['it']):.1f}s\n""")
         print(log_string)
+        distribution = torch.bincount(self.env.terrain_levels)
+        # Output the distribution properly
+        for value in range(12): 
+            count = distribution[value] if value < len(distribution) else 0
+            env_idx = torch.where(self.env.terrain_levels == value)[0]
+            if len(env_idx) > 0:
+                shape_prop = self.env.gym.get_actor_rigid_shape_properties(self.env.envs[env_idx[0]], 0)
+                rest_sum = shape_prop[4].restitution
+                fric_sum = shape_prop[4].friction
+                print(f"Level {value}: {count} Svans :::: Restitution: {rest_sum} :::: Friction: {fric_sum} ")
+            else:
+                print(f"Level {value}: {count} Svans")
 
     def save(self, path, infos=None):
         torch.save({

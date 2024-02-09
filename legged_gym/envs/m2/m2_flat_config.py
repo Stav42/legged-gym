@@ -51,6 +51,11 @@ class M2FlatCfg( LeggedRobotCfg ):
             'FR_calf_joint': -1.5,  # [rad]
             'RR_calf_joint': -1.5,    # [rad]
         }
+
+    class commands( LeggedRobotCfg.commands ):
+        stance_int = 400
+        stance_dur = 225
+        stance_env_num_den = 8
     
     class terrain( LeggedRobotCfg.terrain ):
         mesh_type = 'trimesh'
@@ -60,11 +65,11 @@ class M2FlatCfg( LeggedRobotCfg ):
         svan_terrain = True
         svan_curriculum = True
         curriculum = True
-        terrain_length = 45.
+        terrain_length = 4.
         # max_init_terrain_level = 0
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 45
+        terrain_width = 4
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -124,12 +129,15 @@ class M2FlatCfg( LeggedRobotCfg ):
             feet_stumble = -0.0 
             action_rate_selective = -2e-3
             stand_still = -0.
+            stance_selective = -5
         
         penalty_level = {
             'action_rate_selective': 7,
             'orientation_selective': 4,
             'dof_vel_selective': 4
         }
+
+        stance_penalty = {'stance_selective': 1}
 
 class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):

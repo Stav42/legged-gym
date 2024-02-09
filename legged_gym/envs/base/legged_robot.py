@@ -83,6 +83,7 @@ class LeggedRobot(BaseTask):
         self.perturb_envs = 200
         self.dynamics_counter = 0
         self.reset_interval = 10
+        self.env_stance_mode = np.zeros(self.num_envs)
 
 
 
@@ -282,15 +283,32 @@ class LeggedRobot(BaseTask):
             if self.reward_scales[name] < 0 and name in self.penalty_level and len(self.level_dist[self.penalty_level[name]])>0:
                 penalty_level = self.penalty_level[name]
                 env_ids = self.level_dist[penalty_level]
+                for level in range(penalty_level+1, self.max_terrain_level):
+                    env_ids_tmp = self.level_dist[level]
+                    env_ids = env_ids + env_ids_tmp
                 rew = self.reward_functions[i](env_ids) * self.reward_scales[name]
                 if self.common_step_counter % 30 == 0:
-                    print(f"{name} penalty applied for env {env_ids[0]} with level {self.terrain_levels[env_ids[0]]}")
+                    print(f"{name} penalty applied for {len(env_ids)} env with level {self.terrain_levels[env_ids[0]]} and above")
+                # print(f"reward shape: {rew.shape}")
                 self.rew_buf[env_ids] += rew
                 self.episode_sums[name][env_ids] += rew
-            elif name not in self.penalty_level:
+            elif name not in self.penalty_level and name not in self.cfg.rewards.stance_penalty:
                 rew = self.reward_functions[i]() * self.reward_scales[name]
                 self.rew_buf += rew
                 self.episode_sums[name] += rew
+            if name in self.cfg.rewards.stance_penalty:
+                penalty_level = self.cfg.rewards.stance_penalty[name]
+                env_ids = self.level_dist[penalty_level]
+                for level in range(penalty_level+1, self.max_terrain_level):
+                    env_ids_tmp = self.level_dist[level]
+                    env_ids = env_ids + env_ids_tmp
+                env_ids = [x for x in env_ids if self.env_stance_mode[x] == 1]
+                if len(env_ids) == 0:
+                    continue
+                rew = self.reward_functions[i](env_ids) * self.reward_scales[name]
+                self.rew_buf[env_ids] += rew
+                self.episode_sums[name][env_ids] += rew
+
         if self.cfg.rewards.only_positive_rewards:
             self.rew_buf[:] = torch.clip(self.rew_buf[:], min=0.)
         # add termination reward after clipping
@@ -317,7 +335,11 @@ class LeggedRobot(BaseTask):
             self.obs_buf = torch.cat((self.obs_buf, heights), dim=-1)
         # add noise if needed
         if self.add_noise:
-            self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec        
+            self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec 
+        # set command 0 for robots in stance
+        stance_env_obs = np.where(self.env_stance_mode == 1)[0]
+        # print("Obs buf Shape: ", self.obs_buf.shape)
+        self.obs_buf[stance_env_obs, 9:11] = 0       
         
 
     def create_sim(self):
@@ -631,7 +653,7 @@ class LeggedRobot(BaseTask):
         third_element = torch.zeros(len(env_ids), 1)
         # Concatenate to form the final 4000x3 matrix
         final_matrix = torch.cat((first_two_elements, third_element), dim=1).to(device='cuda:0')
-        self.env_origins[env_ids] = self.env_origins[env_ids] + final_matrix[:] 
+        self.env_origins[env_ids] = self.env_origins[env_ids] + final_matrix[:].to(device=self.device) 
     
     def update_command_curriculum(self, env_ids):
         """ Implements a curriculum of increasing commands
@@ -938,7 +960,7 @@ class LeggedRobot(BaseTask):
             third_element = torch.zeros(self.num_envs, 1)
             # Concatenate to form the final 4000x3 matrix
             final_matrix = torch.cat((first_two_elements, third_element), dim=1).to(device='cuda:0')
-            self.env_origins[:] = self.env_origins[:] + final_matrix[:] 
+            self.env_origins[:] = self.env_origins[:] + final_matrix[:].to(device=self.device) 
             # self.env_origins[:] = self.terrain_origins[0, 0]             
 
         else:
@@ -1095,6 +1117,15 @@ class LeggedRobot(BaseTask):
     def _reward_action_rate(self):
         # Penalize changes in actions
         return torch.sum(torch.square(self.last_actions - self.actions), dim=1)
+
+    def _reward_stance_selective(self, env_ids):
+        # Penalize changes in actions
+        # print(f"Stance delta penalized for the following environments: {env_ids}")
+        # print(f"Shape for dof pos: {self.dof_pos.shape}")
+        # print(f"dof pos[{env_ids}]: {self.dof_pos[env_ids]}")
+        # print(f"default dof pos {self.default_dof_pos}")
+        # print(f"delta pos {self.dof_pos[env_ids] - self.default_dof_pos}")
+        return torch.sum(torch.square(self.dof_pos[env_ids] - self.default_dof_pos), dim=1)
 
     def _reward_action_rate_selective(self, env_ids):
         # Penalize changes in actions
