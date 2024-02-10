@@ -30,7 +30,7 @@
 
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
-
+from multiprocessing import shared_memory
 import isaacgym
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
@@ -59,6 +59,10 @@ lines_joint2 = [ax5.plot([], [], label=f'Joint Position {6+i+1}')[0] for i in ra
 lines_target_position = [ax6.plot([], [], label=f'Target Joint Position {i+1}')[0] for i in range(6)]  # Initialize 5 line plots
 lines = [lines_lin_vel, lines_ang_vel, lines_command, lines_joint1, lines_joint2, lines_target_position]
 
+shm_name = 'observation'
+shm_size = 1024  # Adjust size as needed
+shm = shared_memory.SharedMemory(create=True, name=shm_name, size=shm_size)
+
 def on_press(key):
     print("Key Pressed")
     update_command(key)
@@ -70,6 +74,7 @@ for ax in axes:
 
 command = [0, 0, 0]
 pause = False
+write_data = 1
 
 def update_command(key):
     global command
@@ -89,6 +94,8 @@ def update_command(key):
             command[2] -= 0.1
         elif key.char == 'z':
             pause = not pause
+        elif key.char == 'q':
+            write_data = 0
 
     except AttributeError:
         pass
@@ -147,15 +154,11 @@ def play(args):
                 # print("On Break")
                 if pause == False:
                     break
-        
         default_joint_angles =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         # default_joint_angles =  [0.4000,  0.4000, 0.40000, 0.40000,  0.40000, 0.40000,  0.40000,  0.40000, 0.4000, 0.40000,  0.40000, 0.4000]
-
-
         actions = policy(obs.detach())
         if i>0:
             actions = actions
-            # print("Model Activated")
         else:
             actions = 0*actions
         # for i in range(12):
@@ -165,41 +168,26 @@ def play(args):
         # actions[0] = 4*torch.tensor([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         # actions = 0 * actions
         print("actions: ", actions)
-
-        # if env.gym.get_sim_time(env.sim)>0:
-        #     for j in range(0, 12):
-        #         dof_states[j][0] = default_joint_angles[j]+0.5*np.sin(env.gym.get_sim_time(env.sim)/2)
-                # dof_state_list[j][0] = dof_state_list[j][0]+0.0*np.sin(env.gym.get_sim_time(env.sim)/2)
-                # env.gym.set_dof_target_position(env.envs[0], j, dof_state_list[j][0])
-
-        # env_ids = torch.tensor([0]).to(dtype=torch.int32)
-        # env.gym.set_dof_state_tensor_indexed(env.sim,
-        #                                       gymtorch.unwrap_tensor(dof_states),
-        #                                       gymtorch.unwrap_tensor(env_ids), 1)
-
         obs, _, rews, dones, infos = env.step(actions.detach())
 
-        # for i in range(1):
-            # env.gym.set_rigid_linear_velocity(env.envs[0], env.gym.get_rigid_handle(env.envs[0], "m2", env.gym.get_actor_rigid_body_names(env.envs[0], 0)[i]), gymapi.Vec3(0.0, 0, 0.5))
-            # env.gym.set_rigid_angular_velocity(env.envs[0], env.gym.get_rigid_handle(env.envs[0], "m2", env.gym.get_actor_rigid_body_names(env.envs[0], 0)[i]), gymapi.Vec3(0.1, 0, 0))
-        # dof_state_list = env.gym.get_actor_dof_states(env.envs[0], 0, 1)
+        if env.num_envs==1 and write_data == 1:
+            obs_np = obs.cpu().numpy()
+            obs_np[:] = 1
+            obs_np = obs_np.astype(np.float64)
+            print("Observation: ", obs_np[0, :3])
+            obs_np_bytes = obs_np.tobytes()
+            shm.buf[:len(obs_np_bytes)] = obs_np_bytes
+        elif write_data == 0:
+            shm.close()
+            shm.unlink()
 
-        # print(dof_state_list[0][0])
-        
-
-            # env.gym.set_dof_target_positions(env.envs[0], 0, dof_state_list ,1)
-        # print("DOF StateList New: ", env.gym.get_actor_dof_states(env.envs[0], 0, 1))
-        # _dof_states = env.gym.acquire_dof_state_tensor(env.sim)
-        # dof_states = gymtorch.wrap_tensor(_dof_states)
-        # print("DOF State New: ", dof_states)
-        
         obs[0, 9] = command[0]
         obs[0, 10] = command[1]
         obs[0, 11] = command[2]
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]
-        print("Observation: ", obs)
+
         if plot:
             for index, line in enumerate(lines):
                 for ind in range(len(obs_ind[index])):
