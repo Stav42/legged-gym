@@ -105,6 +105,7 @@ class OnPolicyRunner:
         total_steps = 0
         prev_env_samples = None
         sampled_envs = None
+        last_stance_set = total_steps
         stance_num_envs = self.env.num_envs/self.env.cfg.commands.stance_env_num_den
         for it in range(self.current_learning_iteration, tot_iter):
             start = time.time()
@@ -124,12 +125,16 @@ class OnPolicyRunner:
                     # if total_steps%1000 == 20:
                     #     if sampled_envs is not None:
                     #         self.env._resample_commands(sampled_envs)
-                    if total_steps%400 == 0:
+                    if total_steps%self.env.cfg.commands.stance_int == 0 and total_steps>0:
                         last_stance_set = total_steps
-                        stance_envs = np.random.randint(0, self.env.num_envs, stance_env_num)
+                        print(f"Current Step: {total_steps}")
+                        stance_envs = np.random.randint(0, self.env.num_envs, int(stance_num_envs))
                         self.env.env_stance_mode[stance_envs] = 1
-                    if (total_steps-last_stance_set)%225 == 0:
+                        print("Stance Mode enabled for the following environments: ", stance_envs)
+                    if (total_steps-last_stance_set)%self.env.cfg.commands.stance_dur == 0 and (total_steps-last_stance_set)>0:
+                        print(f"Current Step: {total_steps}")
                         self.env.env_stance_mode[:] = 0                  
+                        print("Stance Mode disabled for all")
 
                     obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
                     self.alg.process_env_step(rewards, dones, infos)
