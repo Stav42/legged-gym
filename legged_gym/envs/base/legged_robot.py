@@ -562,32 +562,32 @@ class LeggedRobot(BaseTask):
     
         #Level 1:
         if level%3 == 0:
-            mean = 0.8
+            mean = 1.
             range_val = 0.1
             prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
-            mean = 0.05
-            range_val = 0.05
+            mean = 0.00
+            range_val = 0.00
             prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         #Level 2:
-        elif level%3 == 1:
-            mean = 0.8
-            range_val = 0.2
+        if level%3 == 1:
+            mean = 1.
+            range_val = 0.1
             prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
-            
-            mean = 0.05
-            range_val = 0.05
+
+            mean = 0.00
+            range_val = 0.00
             prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         #Level 3:
-        elif level%3 == 2:
-            mean = 0.9
-            range_val = 0.3
+        if level%3 == 2:
+            mean = 1.
+            range_val = 0.1
             prop.friction = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
-            mean = 0.05
-            range_val = 0.05
+            mean = 0.00
+            range_val = 0.00
             prop.restitution = np.random.uniform(np.clip(mean - range_val, a_min=0, a_max=None), np.clip(mean + range_val, a_min=0, a_max=None))
 
         return prop
@@ -1079,10 +1079,18 @@ class LeggedRobot(BaseTask):
     def _reward_lin_vel_z(self):
         # Penalize z axis base linear velocity
         return torch.square(self.base_lin_vel[:, 2])
+
+    def _reward_lin_vel_z_selective(self, env_ids):
+        # Penalize z axis base linear velocity
+        return torch.square(self.base_lin_vel[env_ids, 2])
     
     def _reward_ang_vel_xy(self):
         # Penalize xy axes base angular velocity
         return torch.sum(torch.square(self.base_ang_vel[:, :2]), dim=1)
+
+    def _reward_ang_vel_xy_selective(self, env_ids):
+        # Penalize xy axes base angular velocity
+        return torch.sum(torch.square(self.base_ang_vel[env_ids, :2]), dim=1)
     
     def _reward_orientation(self):
         # Penalize non flat base orientation
@@ -1100,11 +1108,15 @@ class LeggedRobot(BaseTask):
     def _reward_torques(self):
         # Penalize torques
         return torch.sum(torch.square(self.torques), dim=1)
+    
+    def _reward_torques_selective(self, env_ids):
+        # Penalize torques
+        return torch.sum(torch.square(self.torques[env_ids]), dim=1)
 
     def _reward_dof_vel(self):
         # Penalize dof velocities
-        return torch.sum(torch.square(self.dof_vel), dim=1)
-    
+        return torch.sum(torch.square(self.dof_vel), dim=1) 
+
     def _reward_dof_vel_selective(self, env_ids):
         # Penalize dof velocities
         return torch.sum(torch.square(self.dof_vel[env_ids]), dim=1)
@@ -1112,10 +1124,18 @@ class LeggedRobot(BaseTask):
     def _reward_dof_acc(self):
         # Penalize dof accelerations
         return torch.sum(torch.square((self.last_dof_vel - self.dof_vel) / self.dt), dim=1)
+
+    def _reward_dof_acc_selective(self, env_ids):
+        # Penalize dof accelerations
+        return torch.sum(torch.square((self.last_dof_vel[env_ids] - self.dof_vel[env_ids]) / self.dt), dim=1)
     
     def _reward_action_rate(self):
         # Penalize changes in actions
         return torch.sum(torch.square(self.last_actions - self.actions), dim=1)
+
+    def _reward_action_rate_selective(self, env_ids):
+        # Penalize changes in actions
+        return torch.sum(torch.square(self.last_actions[env_ids] - self.actions[env_ids]), dim=1)
 
     def _reward_stance_selective(self, env_ids):
         # Penalize changes in actions

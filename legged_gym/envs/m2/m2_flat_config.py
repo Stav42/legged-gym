@@ -106,38 +106,49 @@ class M2FlatCfg( LeggedRobotCfg ):
         push_robots = True
         randomize_base_mass = True
         added_mass_range = [-1., 1.]
-  
+
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.28
-        only_positive_rewards = False
-        class scales( LeggedRobotCfg.rewards.scales ):
-            torques = -0.005
-            dof_pos_limits = -0.0
+        base_height_target = 0.35
+        only_positive_rewards = True
+        class scales():
+            torques = -0.0005
+            # torques_selective = -0.0005
+            dof_pos_limits = -10.0
             termination = -100.0
-            tracking_lin_vel = 5.0
-            tracking_ang_vel = 2.5
-            lin_vel_z = -0.05
-            ang_vel_xy = -0.0
+            tracking_lin_vel = 2.
+            tracking_ang_vel = 1.5
+            lin_vel_z = -2
+            ang_vel_xy = -0.05
+            action_rate = -0.005
+            # lin_vel_z_selective = -4
+            # ang_vel_xy_selective = -0.05
             # orientation = -0.
-            orientation_selective = -2e-7
-            dof_vel_selective = -2e-3
-            dof_acc = -2.5e-7
-            base_height = -0.00
-            feet_air_time =  3
-            collision = -0.
-            feet_stumble = -0.0 
-            action_rate_selective = -4e-2
+            # orientation_selective = -2e-7
+            # dof_vel_selective = -2e-3
+            dof_vel = -0.0001
+            # dof_acc = -0.0001
+            # dof_vel_selective = -0.000001
+            # dof_acc_selective = -0.000001
+            base_height = -2
+            feet_air_time =  1.
+            collision = -0
+            # feet_stumble = -0.0 
+            # action_rate_selective = -0.25
+            # action_rate_selective = -4e-2
             stand_still = -0.
-            stance_selective = -5
+            # stance_selective = -0.25
         
         penalty_level = {
-            'action_rate_selective': 4,
-            'orientation_selective': 7,
-            'dof_vel_selective': 3
+            'action_rate_selective': 0,
+            'orientation_selective': 0,
+            'dof_vel_selective': 0,
+            'dof_acc_selective': 0,
+            'lin_vel_z_selective': 0, 
+            'ang_vel_xy_selective': 0, 
         }
 
-        stance_penalty = {'stance_selective': 2}
+        stance_penalty = {'stance_selective': 3}
 
 class M2FlatCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
