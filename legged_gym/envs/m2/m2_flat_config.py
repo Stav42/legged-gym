@@ -122,8 +122,8 @@ class M2FlatCfg( LeggedRobotCfg ):
             # orientation = -0.05
             # dof_vel = -0.0005
             dof_acc = -2.5e-7
-            base_height = -1.00
-            feet_air_time =  1.00
+            base_height = -0.00
+            # feet_air_time =  1.00
             collision = -0.
             feet_stumble = -0.0 
             action_rate = -0.0
