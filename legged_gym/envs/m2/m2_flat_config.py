@@ -109,35 +109,25 @@ class M2FlatCfg( LeggedRobotCfg ):
 
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.35
-        only_positive_rewards = True
-        class scales():
-            torques = -0.00005
-            # torques_selective = -0.0005
-            dof_pos_limits = -10.0
-            termination = -100.0
-            tracking_lin_vel = 1.
+        base_height_target = 0.28
+        only_positive_rewards = False
+        class scales( LeggedRobotCfg.rewards.scales ):
+            torques = -0.0005
+            dof_pos_limits = -0.0
+            termination = -0.0
+            tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
-            lin_vel_z = -4
-            ang_vel_xy = -0.05
-            action_rate = -0.25
-            # lin_vel_z_selective = -4
-            # ang_vel_xy_selective = -0.05
+            lin_vel_z = -0.05
+            ang_vel_xy = -0.0
             # orientation = -0.
-            # orientation_selective = -2e-7
-            # dof_vel_selective = -2e-3
-            dof_vel = -0.0001
+            dof_vel = -0.
             dof_acc = -2.5e-7
-            # dof_vel_selective = -0.000001
-            # dof_acc_selective = -0.000001
-            # base_height = -0.05
-            feet_air_time =  2.
-            collision = -0.001
-            # feet_stumble = -0.0 
-            # action_rate_selective = -0.25
-            # action_rate_selective = -4e-2
+            base_height = -0.00
+            feet_air_time =  2
+            collision = -0.
+            feet_stumble = -0.0 
+            action_rate = -0.0
             stand_still = -0.
-            # stance_selective = -0.25
         
         penalty_level = {
             'action_rate_selective': 0,

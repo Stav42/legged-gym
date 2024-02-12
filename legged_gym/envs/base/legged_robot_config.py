@@ -189,7 +189,7 @@ class LeggedRobotCfg(BaseConfig):
 
         class physx:
             num_threads = 10
-            solver_type = 0  # 0: pgs, 1: tgs
+            solver_type = 1  # 0: pgs, 1: tgs
             num_position_iterations = 4
             num_velocity_iterations = 0
             contact_offset = 0.01  # [m]
