@@ -84,6 +84,7 @@ class LeggedRobot(BaseTask):
         self.dynamics_counter = 0
         self.reset_interval = 10
         self.env_stance_mode = np.zeros(self.num_envs)
+        # self.plane_params = None
 
 
 
@@ -111,6 +112,16 @@ class LeggedRobot(BaseTask):
         self.obs_buf = torch.clip(self.obs_buf, -clip_obs, clip_obs)
         if self.privileged_obs_buf is not None:
             self.privileged_obs_buf = torch.clip(self.privileged_obs_buf, -clip_obs, clip_obs)
+
+        for i in range(self.num_envs):
+            print(f"Ground Dynamics Parameters: {self.plane_params.restitution} {self.plane_params.static_friction} {self.plane_params.dynamic_friction}")
+            body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
+            body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
+            print("\n\n\n")
+            for feet in [4, 8, 12, 16]:
+                print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
+        
+
         return self.obs_buf, self.privileged_obs_buf, self.rew_buf, self.reset_buf, self.extras
 
     def apply_perturbation(self, env_perturb, mag):
@@ -119,9 +130,6 @@ class LeggedRobot(BaseTask):
             Force of given magnitude applied in a random location in the body part
         """
 
-        # print("env_perturb: ", env_perturb)
-
-        ##  # Environments to be perturbed: self.perturb_envs 
         low = -0.1; high = 0.1
         v1 = np.random.uniform(low, high, self.perturb_envs)
         low = -0.1; high = 0.1
@@ -248,7 +256,7 @@ class LeggedRobot(BaseTask):
         self._reset_root_states(env_ids)
         self.dynamics_counter+=1
         # print("Dynamics Counter: ", self.dynamics_counter)
-        if self.cfg.terrain.svan_curriculum:
+        if self.cfg.terrain.svan_dyn_random:
             self._reset_env_dynamics(env_ids)
         self._resample_commands(env_ids)
 
@@ -394,6 +402,14 @@ class LeggedRobot(BaseTask):
 
             for s in range(len(props)):
                 props[s].friction = self.friction_coeffs[env_id]
+                props[s].torsion_friction = 0.3
+                props[s].rolling_friction = 0.3
+                props[s].friction = 0.5
+        print(f"Length Props: {len(props)}")
+        for s in range(len(props)):
+            props[s].torsion_friction = 1
+            props[s].rolling_friction = 1
+            props[s].friction = 1
         return props
 
     def _process_dof_props(self, props, env_id):
@@ -535,6 +551,7 @@ class LeggedRobot(BaseTask):
                                                      gymtorch.unwrap_tensor(self.root_states),
                                                      gymtorch.unwrap_tensor(env_ids_int32), len(env_ids_int32))
 
+
     def _reset_env_dynamics(self, env_ids):
         """ Resets dynamic parameters of selected environmments
             Mass, Inertia parameters randomized in [-min, man] 
@@ -546,15 +563,17 @@ class LeggedRobot(BaseTask):
         """
 
         for env_idx in env_ids:
-
             ## Randomizing foot frictions
             foot_indices = [4, 8, 12, 16]
             shape_prop = self.gym.get_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx])
-            level = self.terrain_levels[env_idx] 
-            for index in foot_indices:
-                shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[int(index/4 - 1)], level)
+            # level = self.terrain_levels[env_idx] 
+            for index in range(17):
+                shape_prop[index].torsion_friction = 0.3
+                shape_prop[index].rolling_friction = 0.3
+                # shape_prop[index].friction = 0.3
+                # shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[int(index/4 - 1)], level)
             self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_prop)
-            # print(f"Env {env_idx} dynamics parameters reset")
+            print(f"Env {env_idx} dynamics parameters reset")
             self.gym.refresh_rigid_body_state_tensor(self.sim) 
 
 
@@ -794,6 +813,8 @@ class LeggedRobot(BaseTask):
         plane_params.static_friction = self.cfg.terrain.static_friction
         plane_params.dynamic_friction = self.cfg.terrain.dynamic_friction
         plane_params.restitution = self.cfg.terrain.restitution
+        self.plane_params = plane_params
+        print(f'Ground Plane Added')
         self.gym.add_ground(self.sim, plane_params)
     
     def _create_heightfield(self):
@@ -899,6 +920,7 @@ class LeggedRobot(BaseTask):
             start_pose.p = gymapi.Vec3(*pos)
                 
             rigid_shape_props = self._process_rigid_shape_props(rigid_shape_props_asset, i)
+            print(f"Rigid Shape Properties: {rigid_shape_props[0].friction} and {rigid_shape_props[0].restitution} and {rigid_shape_props[0].rolling_friction}")
             self.gym.set_asset_rigid_shape_properties(robot_asset, rigid_shape_props)
             actor_handle = self.gym.create_actor(env_handle, robot_asset, start_pose, self.cfg.asset.name, i, self.cfg.asset.self_collisions, 0)
 
@@ -912,18 +934,18 @@ class LeggedRobot(BaseTask):
             self.envs.append(env_handle)
             self.actor_handles.append(actor_handle)
         
-        # for i in range(self.num_envs):
-        #     body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
-        #     body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
-        #     print("\n\n\n")
-        #     for feet in [4, 8, 12, 16]:
-        #         print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
+        for i in range(self.num_envs):
+            body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
+            body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
+            print("\n\n\n")
+            for feet in [4, 8, 12, 16]:
+                print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
         
         body_props = self.gym.get_actor_rigid_body_properties(self.envs[0], self.actor_handles[0])
         body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[0], self.actor_handles[0])
 
         self.default_base_rigid_body_props = body_props[0]
-        self.default_feet_rigid_shape_props = [body_shape[4], body_shape[8], body_shape[12], body_shape[16]]
+        # self.default_feet_rigid_shape_props = [body_shape[4], body_shape[8], body_shape[12], body_shape[16]]
 
         self.feet_indices = torch.zeros(len(feet_names), dtype=torch.long, device=self.device, requires_grad=False)
         for i in range(len(feet_names)):
@@ -1191,7 +1213,8 @@ class LeggedRobot(BaseTask):
         self.last_contacts = contact
         first_contact = (self.feet_air_time > 0.) * contact_filt
         self.feet_air_time += self.dt
-        rew_airTime = torch.sum((self.feet_air_time - 0.5) * first_contact, dim=1) # reward only on first contact with the ground
+        # contact_feet_sum = 
+        rew_airTime = torch.sum((self.feet_air_time - 1) * first_contact, dim=1) # reward only on first contact with the ground
         rew_airTime *= torch.norm(self.commands[:, :2], dim=1) > 0.1 #no reward for zero command
         self.feet_air_time *= ~contact_filt
         return rew_airTime

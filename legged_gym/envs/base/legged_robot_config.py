@@ -46,8 +46,8 @@ class LeggedRobotCfg(BaseConfig):
         vertical_scale = 0.005 # [m]
         border_size = 25 # [m]
         curriculum = False
-        static_friction = 1.0
-        dynamic_friction = 1.0
+        static_friction = 1.
+        dynamic_friction = 1.
         restitution = 0.
         # rough terrain only:
         measure_heights = True
@@ -177,21 +177,21 @@ class LeggedRobotCfg(BaseConfig):
     # viewer camera:
     class viewer:
         ref_env = 0
-        pos = [10, 0, 6]  # [m]
-        lookat = [11., 5, 3.]  # [m]
+        pos = [15, -4, 6]  # [m]
+        lookat = [11., 4, 2.]  # [m]
 
     class sim:
         #dt =  0.005
-        dt =  0.005
-        substeps = 1
+        dt =  0.01
+        substeps = 2
         gravity = [0., 0. ,-9.81]  # [m/s^2]
         up_axis = 1  # 0 is y, 1 is z
 
         class physx:
             num_threads = 10
             solver_type = 1  # 0: pgs, 1: tgs
-            num_position_iterations = 4
-            num_velocity_iterations = 0
+            num_position_iterations = 10
+            num_velocity_iterations = 1
             contact_offset = 0.01  # [m]
             rest_offset = 0.0   # [m]
             bounce_threshold_velocity = 0.5 #0.5 [m/s]

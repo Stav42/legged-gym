@@ -64,9 +64,13 @@ class M2FlatCfg( LeggedRobotCfg ):
         measure_heights = False
         svan_terrain = False
         svan_curriculum = False
+        svan_dyn_random = True
         # curriculum = True
         terrain_length = 4.
+        restitution = 0
         # max_init_terrain_level = 0
+        static_friction = 50
+        dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
         terrain_width = 4.
@@ -83,9 +87,42 @@ class M2FlatCfg( LeggedRobotCfg ):
         #             'RR_hip_joint': 8.94, 'RR_thigh_joint': 6.32, 'RR_calf_joint': 2.82, 'RL_hip_joint': 8.94, 'RL_thigh_joint': 6.32, 'RL_calf_joint': 2.82,
         # }     # [N*m*s/rad]
 
-        
-        stiffness = {"joint": 60}
-        damping = {'joint': 0.5} 
+        #60 and 0.5
+        stiffness = { # = target angles [rad] when action = 0.0
+            'FL_hip_joint':100,   # [rad]
+            'RL_hip_joint':100,  # [rad]
+            'FR_hip_joint':100,  # [rad]
+            'RR_hip_joint':100,   # [rad]
+
+            'FL_thigh_joint':45,     # [rad]
+            'RL_thigh_joint':45,   # [rad]
+            'FR_thigh_joint':45,     # [rad]
+            'RR_thigh_joint':45,  # [rad]
+
+            'FL_calf_joint':45,   # [rad]
+            'RL_calf_joint':45,    # [rad]
+            'FR_calf_joint':45,  # [rad]
+            'RR_calf_joint':45,    # [rad]
+        }
+
+        damping = { # = target angles [rad] when action = 0.0
+            'FL_hip_joint':0.5,   # [rad]
+            'RL_hip_joint':0.5,  # [rad]
+            'FR_hip_joint':0.5,  # [rad]
+            'RR_hip_joint':0.5,   # [rad]
+
+            'FL_thigh_joint':0.5,     # [rad]
+            'RL_thigh_joint':0.5,   # [rad]
+            'FR_thigh_joint':0.5,     # [rad]
+            'RR_thigh_joint':0.5,  # [rad]
+
+            'FL_calf_joint':0.5,   # [rad]
+            'RL_calf_joint':0.5,    # [rad]
+            'FR_calf_joint':0.5,  # [rad]
+            'RR_calf_joint':0.5,    # [rad]
+        }
+        # stiffness = {'joint': 50}
+        # damping = {'joint': 0.5} 
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.20
         # decimation: Number of control action updates @ sim DT per policy DT
@@ -93,11 +130,13 @@ class M2FlatCfg( LeggedRobotCfg ):
 
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/m2/urdf/SVANM2_URDF_inertia_change.urdf'
+        # file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1.urdf'
+
         name = "m2"
         foot_name = "foot"
         fix_base_link = False
         penalize_contacts_on = ["thigh", "calf"]
-        terminate_after_contacts_on = ["base", "hip"]
+        # terminate_after_contacts_on = ["base", "hip"]
         # terminate_after_contacts_on = []
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
@@ -105,6 +144,7 @@ class M2FlatCfg( LeggedRobotCfg ):
     class domain_rand( LeggedRobotCfg.domain_rand ):
         push_robots = True
         randomize_base_mass = True
+        randomize_friction = True
         added_mass_range = [-1., 1.]
 
     class rewards( LeggedRobotCfg.rewards ):
@@ -118,12 +158,12 @@ class M2FlatCfg( LeggedRobotCfg ):
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
             lin_vel_z = -0.05
-            ang_vel_xy = -0.05
+            # ang_vel_xy = -0.05
             # orientation = -0.05
             # dof_vel = -0.0005
-            dof_acc = -2.5e-7
-            base_height = -0.00
-            # feet_air_time =  1.00
+            # dof_acc = -2.5e-7
+            # base_height = -0.00
+            feet_air_time =  1.00
             collision = -0.
             feet_stumble = -0.0 
             action_rate = -0.0

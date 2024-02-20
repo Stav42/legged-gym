@@ -53,6 +53,24 @@ class A1RoughCfg( LeggedRobotCfg ):
     class terrain( LeggedRobotCfg.terrain):
         mesh_type = "plane"
         measure_heights = False
+        measure_heights = False
+        svan_terrain = False
+        svan_curriculum = False
+        # curriculum = True
+        terrain_length = 4.
+        # max_init_terrain_level = 0
+        static_friction = 1
+        dynamic_friction = 1
+        max_terrain_level = 12
+        visualize_force = False
+        terrain_width = 4.
+        num_rows = 1 # number of terrain rows (levels)
+        num_cols = 4 # number of terrain cols (types)
+
+    class commands( LeggedRobotCfg.commands ):
+        stance_int = 400
+        stance_dur = 225
+        stance_env_num_den = 8
 
     class control( LeggedRobotCfg.control ):
         # PD Drive parameters:
@@ -70,15 +88,42 @@ class A1RoughCfg( LeggedRobotCfg ):
         # fix_base_link = True 
         foot_name = "foot"
         penalize_contacts_on = ["thigh", "calf"]
-        terminate_after_contacts_on = ["base"]
+        terminate_after_contacts_on = ["base", 'TRUNK']
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
   
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.25
+        base_height_target = 0.28
+        only_positive_rewards = False
         class scales( LeggedRobotCfg.rewards.scales ):
-            torques = -0.0002
-            dof_pos_limits = -10.0
+            torques = -0.0005
+            dof_pos_limits = -0.0
+            termination = -0.0
+            tracking_lin_vel = 1.0
+            tracking_ang_vel = 0.5
+            lin_vel_z = -0.05
+            # ang_vel_xy = -0.05
+            # orientation = -0.05
+            # dof_vel = -0.0005
+            # dof_acc = -2.5e-7
+            # base_height = -0.00
+            feet_air_time =  1.00
+            collision = -0.
+            feet_stumble = -0.0 
+            action_rate = -0.0
+            # stand_still = -0.5
+            # stance_selective = -2.
+        
+        penalty_level = {
+            'action_rate_selective': 0,
+            'orientation_selective': 0,
+            'dof_vel_selective': 0,
+            'dof_acc_selective': 0,
+            'lin_vel_z_selective': 0, 
+            'ang_vel_xy_selective': 0, 
+        }
+
+        stance_penalty = {'stance_selective': 0}
 
 class A1RoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
