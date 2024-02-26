@@ -66,14 +66,14 @@ class M2FlatCfg( LeggedRobotCfg ):
         svan_curriculum = False
         svan_dyn_random = True
         # curriculum = True
-        terrain_length = 4.
+        terrain_length = 16.
         restitution = 0
         # max_init_terrain_level = 0
-        static_friction = 50
+        static_friction = 1
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 4.
+        terrain_width = 16.
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -136,7 +136,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         foot_name = "foot"
         fix_base_link = False
         penalize_contacts_on = ["thigh", "calf"]
-        # terminate_after_contacts_on = ["base", "hip"]
+        terminate_after_contacts_on = ["base", "hip"]
         # terminate_after_contacts_on = []
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter
         flip_visual_attachments = False
@@ -149,20 +149,20 @@ class M2FlatCfg( LeggedRobotCfg ):
 
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
-        base_height_target = 0.28
-        only_positive_rewards = False
+        base_height_target = 0.3
+        only_positive_rewards = True
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0005
             dof_pos_limits = -0.0
-            termination = -0.0
-            tracking_lin_vel = 1.0
-            tracking_ang_vel = 0.5
+            termination = -10.0
+            tracking_lin_vel = 2.0
+            tracking_ang_vel = 1.5
             lin_vel_z = -0.05
-            # ang_vel_xy = -0.05
+            ang_vel_xy = -0.05
             # orientation = -0.05
             # dof_vel = -0.0005
             # dof_acc = -2.5e-7
-            # base_height = -0.00
+            base_height = -0.5
             feet_air_time =  1.00
             collision = -0.
             feet_stumble = -0.0 

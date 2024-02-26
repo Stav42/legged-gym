@@ -64,6 +64,7 @@ class A1RoughCfg( LeggedRobotCfg ):
         max_terrain_level = 12
         visualize_force = False
         terrain_width = 4.
+        svan_dyn_random = False
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -88,7 +89,7 @@ class A1RoughCfg( LeggedRobotCfg ):
         # fix_base_link = True 
         foot_name = "foot"
         penalize_contacts_on = ["thigh", "calf"]
-        terminate_after_contacts_on = ["base", 'TRUNK']
+        terminate_after_contacts_on = ["base", 'trunk']
         self_collisions = 0 # 1 to disable, 0 to enable...bitwise filter
   
     class rewards( LeggedRobotCfg.rewards ):

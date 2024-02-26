@@ -182,15 +182,15 @@ class LeggedRobotCfg(BaseConfig):
 
     class sim:
         #dt =  0.005
-        dt =  0.01
-        substeps = 2
+        dt =  0.0045
+        substeps = 1
         gravity = [0., 0. ,-9.81]  # [m/s^2]
         up_axis = 1  # 0 is y, 1 is z
 
         class physx:
             num_threads = 10
             solver_type = 1  # 0: pgs, 1: tgs
-            num_position_iterations = 10
+            num_position_iterations = 8
             num_velocity_iterations = 1
             contact_offset = 0.01  # [m]
             rest_offset = 0.0   # [m]

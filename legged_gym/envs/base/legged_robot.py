@@ -113,13 +113,13 @@ class LeggedRobot(BaseTask):
         if self.privileged_obs_buf is not None:
             self.privileged_obs_buf = torch.clip(self.privileged_obs_buf, -clip_obs, clip_obs)
 
-        for i in range(self.num_envs):
-            print(f"Ground Dynamics Parameters: {self.plane_params.restitution} {self.plane_params.static_friction} {self.plane_params.dynamic_friction}")
-            body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
-            body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
-            print("\n\n\n")
-            for feet in [4, 8, 12, 16]:
-                print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
+        # for i in range(self.num_envs):
+        #     print(f"Ground Dynamics Parameters: {self.plane_params.restitution} {self.plane_params.static_friction} {self.plane_params.dynamic_friction}")
+        #     body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
+        #     body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
+        #     print("\n\n\n")
+        #     for feet in [4, 8, 12, 16]:
+        #         print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
         
 
         return self.obs_buf, self.privileged_obs_buf, self.rew_buf, self.reset_buf, self.extras
@@ -573,7 +573,7 @@ class LeggedRobot(BaseTask):
                 # shape_prop[index].friction = 0.3
                 # shape_prop[index] = self._populate_shape_properties(self.default_feet_rigid_shape_props[int(index/4 - 1)], level)
             self.gym.set_actor_rigid_shape_properties(self.envs[env_idx], self.actor_handles[env_idx], shape_prop)
-            print(f"Env {env_idx} dynamics parameters reset")
+            # print(f"Env {env_idx} dynamics parameters reset")
             self.gym.refresh_rigid_body_state_tensor(self.sim) 
 
 
@@ -934,12 +934,12 @@ class LeggedRobot(BaseTask):
             self.envs.append(env_handle)
             self.actor_handles.append(actor_handle)
         
-        for i in range(self.num_envs):
-            body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
-            body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
-            print("\n\n\n")
-            for feet in [4, 8, 12, 16]:
-                print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
+        # for i in range(self.num_envs):
+        #     body_props = self.gym.get_actor_rigid_body_properties(self.envs[i], self.actor_handles[i])
+        #     body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[i], self.actor_handles[i])
+        #     print("\n\n\n")
+        #     for feet in [4, 8, 12, 16]:
+        #         print(f"body_shape properties Body {i+1} Feet {feet/4} Compliance: {body_shape[feet].compliance} friction: {body_shape[feet].friction} restitution: {body_shape[feet].restitution} rolling_friction: {body_shape[feet].rolling_friction} torsion_friction: {body_shape[feet].torsion_friction}")
         
         body_props = self.gym.get_actor_rigid_body_properties(self.envs[0], self.actor_handles[0])
         body_shape = self.gym.get_actor_rigid_shape_properties(self.envs[0], self.actor_handles[0])
