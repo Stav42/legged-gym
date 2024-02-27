@@ -148,8 +148,9 @@ def play(args):
     plot = False
     global pause
     data_bytes = np.zeros(12).tobytes()
-    shm_name = 'joint_state'
-    shm = shared_memory.SharedMemory( name=shm_name)
+    if env_cfg.asset.mcp_running:
+        shm_name = 'joint_state'
+        shm = shared_memory.SharedMemory( name=shm_name)
 
     obs_ind = [[0, 1, 2], [3, 4, 5], [9, 10, 11], [12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23], [36, 37, 38, 39, 40, 41]]
 
@@ -163,21 +164,22 @@ def play(args):
         default_joint_angles =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         # default_joint_angles =  [0.4000,  0.4000, 0.40000, 0.40000,  0.40000, 0.40000,  0.40000,  0.40000, 0.4000, 0.40000,  0.40000, 0.4000]
         actions = policy(obs.detach())
-        if i>0:
-            data_bytes_2 = shm.buf[:len(data_bytes)]  # Adjust slice as needed
-            data = np.frombuffer(data_bytes_2, dtype=np.float64)  # Adjust dtype as per your data
-            # print("Data  is" , data[3])
-            # print("Default Angle: ", default_joint_angles[3])
-            # print("Action size: ", actions.shape)
-            actions = actions
-            for idx in range(12):
-                if idx == 1 or idx == 2 or idx == 6 or idx == 9 or idx == 10 or idx == 11:
-                    actions[0, idx] = 5 * (-float(data[idx]) - float(default_joint_angles[idx]))
-                else:    
-                    # actions[0, idx] = float(data[idx]) - float(default_joint_angles[idx])   
-                    actions[0, idx] = 5 * (float(data[idx]) - float(default_joint_angles[idx]))
-        else:
-            actions = 0*actions
+        if env_cfg.asset.mcp_running:
+            if i>0:
+                data_bytes_2 = shm.buf[:len(data_bytes)]  # Adjust slice as needed
+                data = np.frombuffer(data_bytes_2, dtype=np.float64)  # Adjust dtype as per your data
+                # print("Data  is" , data[3])
+                # print("Default Angle: ", default_joint_angles[3])
+                # print("Action size: ", actions.shape)
+                actions = actions
+                for idx in range(12):
+                    if idx == 1 or idx == 2 or idx == 6 or idx == 9 or idx == 10 or idx == 11:
+                        actions[0, idx] = 5 * (-float(data[idx]) - float(default_joint_angles[idx]))
+                    else:    
+                        # actions[0, idx] = float(data[idx]) - float(default_joint_angles[idx])   
+                        actions[0, idx] = 5 * (float(data[idx]) - float(default_joint_angles[idx]))
+            else:
+                actions = 0*actions
 
         # print("actions: ", actions)
         obs, _, rews, dones, infos = env.step(actions.detach())

@@ -55,25 +55,25 @@ class M2FlatCfg( LeggedRobotCfg ):
     class commands( LeggedRobotCfg.commands ):
         stance_int = 400
         stance_dur = 225
-        stance_env_num_den = 8
+        stance_env_num_den = 192
     
     class terrain( LeggedRobotCfg.terrain ):
-        mesh_type = 'plane'
+        # mesh_type = 'plane'
         # measure_heights = False
-        # mesh_type = "trimesh"
+        mesh_type = "trimesh"
         measure_heights = False
-        svan_terrain = False
-        svan_curriculum = False
+        svan_terrain = True
+        svan_curriculum = True
         svan_dyn_random = True
         # curriculum = True
-        terrain_length = 16.
+        terrain_length = 45
         restitution = 0
         # max_init_terrain_level = 0
         static_friction = 1
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 16.
+        terrain_width = 45.
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -131,7 +131,7 @@ class M2FlatCfg( LeggedRobotCfg ):
     class asset( LeggedRobotCfg.asset ):
         file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/m2/urdf/SVANM2_URDF_inertia_change.urdf'
         # file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/a1/urdf/a1.urdf'
-
+        mcp_running = False
         name = "m2"
         foot_name = "foot"
         fix_base_link = False
@@ -160,15 +160,15 @@ class M2FlatCfg( LeggedRobotCfg ):
             lin_vel_z = -0.05
             ang_vel_xy = -0.05
             # orientation = -0.05
-            # dof_vel = -0.0005
-            # dof_acc = -2.5e-7
+            dof_vel = -0.0005
+            dof_acc = -2.5e-7
             base_height = -0.5
             feet_air_time =  1.00
             collision = -0.
             feet_stumble = -0.0 
             action_rate = -0.0
             # stand_still = -0.5
-            # stance_selective = -2.
+            stance_selective = -1.5
         
         penalty_level = {
             'action_rate_selective': 0,

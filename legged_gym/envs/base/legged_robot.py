@@ -405,7 +405,7 @@ class LeggedRobot(BaseTask):
                 props[s].torsion_friction = 0.3
                 props[s].rolling_friction = 0.3
                 props[s].friction = 0.5
-        print(f"Length Props: {len(props)}")
+        # print(f"Length Props: {len(props)}")
         for s in range(len(props)):
             props[s].torsion_friction = 1
             props[s].rolling_friction = 1
@@ -920,7 +920,7 @@ class LeggedRobot(BaseTask):
             start_pose.p = gymapi.Vec3(*pos)
                 
             rigid_shape_props = self._process_rigid_shape_props(rigid_shape_props_asset, i)
-            print(f"Rigid Shape Properties: {rigid_shape_props[0].friction} and {rigid_shape_props[0].restitution} and {rigid_shape_props[0].rolling_friction}")
+            # print(f"Rigid Shape Properties: {rigid_shape_props[0].friction} and {rigid_shape_props[0].restitution} and {rigid_shape_props[0].rolling_friction}")
             self.gym.set_asset_rigid_shape_properties(robot_asset, rigid_shape_props)
             actor_handle = self.gym.create_actor(env_handle, robot_asset, start_pose, self.cfg.asset.name, i, self.cfg.asset.self_collisions, 0)
 
