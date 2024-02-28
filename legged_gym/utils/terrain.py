@@ -171,7 +171,7 @@ class Terrain:
                                 horizontal_scale=self.cfg.horizontal_scale)
        
         if   col % 4 == 3:
-            terrain_utils.random_uniform_terrain(terrain, min_height=-0.05, max_height=0.05, step=0.005, downsampled_scale=0.2)
+            terrain_utils.random_uniform_terrain(terrain, min_height=-0.03, max_height=0.03, step=0.005, downsampled_scale=0.2)
         elif col % 4 == 2:
             terrain_utils.spherical_indentation_terrain(terrain)
         elif col % 4 == 1:
