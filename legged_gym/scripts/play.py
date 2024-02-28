@@ -44,36 +44,20 @@ from pynput import keyboard
 import numpy as np
 import torch
 
-import matplotlib.pyplot as plt
+obs_size = 48  # Adjust this based on your actual observation size
+shm_name = 'obs_shm'  # Name of the shared memory block
+try:
+    shm = shared_memory.SharedMemory(name=shm_name, create=True, size=obs_size * 8)  # 8 bytes per double
+except FileExistsError:
+    shm = shared_memory.SharedMemory(name=shm_name)
 
-
-plt.ion()
-# fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, figsize=(20, 16))
-fig, ((ax6)) = plt.subplots(1, 1, figsize=(20, 16))
-# axes = [ax1, ax2, ax3, ax4, ax5, ax6]
-axes = [ax6]
-# line, = ax.plot([], [], 'r-')  # Red line plot
-# lines_lin_vel = [ax1.plot([], [], label=f'Base Linear Velocity {i+1}')[0] for i in range(3)]  # Initialize 5 line plots
-# lines_ang_vel = [ax2.plot([], [], label=f'Base Angular Velocity {i+1}')[0] for i in range(3)]  # Initialize 5 line plots
-# lines_command = [ax3.plot([], [], label=f'Command {i+1}')[0] for i in range(3)]  # Initialize 5 line plots
-# lines_joint1 = [ax4.plot([], [], label=f'Joint Position {i+1}')[0] for i in range(6)]  # Initialize 5 line plots
-# lines_joint2 = [ax5.plot([], [], label=f'Joint Position {6+i+1}')[0] for i in range(6)]  # Initialize 5 line plots
-# lines_target_position = [ax6.plot([], [], label=f'Target Joint Position {i+1}')[0] for i in range(6)]  # Initialize 5 line plots
-lines_contact_forces = [ax6.plot([], [], label=f'Contact Force for leg FL {i} part')[0] for i in range(3)]
-# lines = [lines_lin_vel, lines_ang_vel, lines_command, lines_joint1, lines_joint2, lines_target_position, lines_contact_forces]
-lines = [lines_contact_forces]
-# shm_name = 'observation'
-# shm_size = 1024  # Adjust size as needed
-# shm = shared_memory.SharedMemory(create=True, name=shm_name, size=shm_size)
+def write_obs_to_shm(obs):
+    obs_flat = np.ravel(obs.detach().cpu()).astype(np.float64)
+    np.ndarray(obs_flat.shape, dtype=np.float64, buffer=shm.buf)[:len(obs_flat)] = obs_flat
 
 def on_press(key):
     print("Key Pressed")
     update_command(key)
-
-for ax in axes:
-    ax.legend()
-    ax.set_xlim(0, 100)
-    ax.set_ylim(-2, 1.5)
 
 command = [0, 0, 0]
 pause = False
@@ -144,13 +128,12 @@ def play(args):
     camera_vel = np.array([1., 1., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
-    print("initial Observation 4: ", obs)
     plot = False
     global pause
     data_bytes = np.zeros(12).tobytes()
     if env_cfg.asset.mcp_running:
         shm_name = 'joint_state'
-        shm = shared_memory.SharedMemory( name=shm_name)
+        shm = shared_memory.SharedMemory( name = shm_name )
 
     obs_ind = [[0, 1, 2], [3, 4, 5], [9, 10, 11], [12, 13, 14, 15, 16, 17], [18, 19, 20, 21, 22, 23], [36, 37, 38, 39, 40, 41]]
 
@@ -168,9 +151,6 @@ def play(args):
             if i>0:
                 data_bytes_2 = shm.buf[:len(data_bytes)]  # Adjust slice as needed
                 data = np.frombuffer(data_bytes_2, dtype=np.float64)  # Adjust dtype as per your data
-                # print("Data  is" , data[3])
-                # print("Default Angle: ", default_joint_angles[3])
-                # print("Action size: ", actions.shape)
                 actions = actions
                 for idx in range(12):
                     if idx == 1 or idx == 2 or idx == 6 or idx == 9 or idx == 10 or idx == 11:
@@ -183,6 +163,7 @@ def play(args):
 
         # print("actions: ", actions)
         obs, _, rews, dones, infos = env.step(actions.detach())
+        write_obs_to_shm(obs)
         print(f"Shape of Contact Forces: {env.contact_forces.shape}")
         print(f"Contact Forces are: {env.contact_forces[0, [5, 9, 13, 17]]}")
 
@@ -193,29 +174,6 @@ def play(args):
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]
-        
-        if plot:
-            for index, line in enumerate(lines):
-                for ind in range(len(obs_ind[index])):
-                    x_data = np.append(line[ind].get_xdata(), i)
-                    x_data_clipped = x_data[-100:]
-                    if index == 5:
-                        y_data = np.append(line[ind].get_ydata(), action_list[ind])
-                    else:
-                        # y_data = np.append(line[ind].get_ydata(), obs_list[obs_ind[index][ind]])
-                        y_data = np.append(line[ind].get_ydata(), env.contact_forces[0, 17, ind].cpu().numpy())
-                    y_data_clipped = y_data[-100:]
-
-                    line[ind].set_xdata(x_data_clipped)
-                    line[ind].set_ydata(y_data_clipped)
-
-                axes[index].set_xlim(np.min(x_data_clipped), np.max(x_data_clipped)+1)
-                axes[index].relim()
-                axes[index].autoscale_view()
-
-            plt.pause(0.01)
-            plt.show()
-
 
         if RECORD_FRAMES:
             if i % 2:
@@ -243,4 +201,5 @@ if __name__ == '__main__':
     listener.start()
     args = get_args()
     play(args)
-    plt.ioff()
+    shm.close()
+    shm.unlink() 

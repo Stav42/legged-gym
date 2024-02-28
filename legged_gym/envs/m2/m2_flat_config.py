@@ -66,14 +66,14 @@ class M2FlatCfg( LeggedRobotCfg ):
         svan_curriculum = True
         svan_dyn_random = True
         # curriculum = True
-        terrain_length = 45
+        terrain_length = 4
         restitution = 0
         # max_init_terrain_level = 0
-        static_friction = 1
+        static_friction = 20
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 45.
+        terrain_width = 4
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
