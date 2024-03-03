@@ -57,8 +57,10 @@ class M2FlatCfg( LeggedRobotCfg ):
         stance_dur = 225
         stance_env_num_den = 192
         lin_vel_x = [-1.0, 1.0]
-        lin_vel_y = [-0.6, 0.6]
+        lin_vel_y = [-1.0, 1.0]
+        heading_command = False
         ang_vel_yaw = [-1.0, 1.0]
+        resampling_time = 10.0
         body_height_cmd = [-0.25, 0.15]
         gait_frequency_cmd_range = [2.0, 4.0]
         gait_phase_cmd_range = [0.0, 1.0]
@@ -86,6 +88,10 @@ class M2FlatCfg( LeggedRobotCfg ):
         limit_stance_width = [0.10, 0.45]
         limit_stance_length = [0.35, 0.45]
 
+        command_curriculum = True
+        num_lin_vel_bins = 30
+        num_ang_vel_bins = 30
+
         num_bins_vel_x = 21
         num_bins_vel_y = 1
         num_bins_vel_yaw = 21
@@ -101,9 +107,9 @@ class M2FlatCfg( LeggedRobotCfg ):
         num_bins_stance_width = 1
 
         exclusive_phase_offset = False
-    pacing_offset = False
-    binary_phases = True
-    gaitwise_curricula = True
+        pacing_offset = False
+        binary_phases = True
+        gaitwise_curricula = True
         
     class terrain( LeggedRobotCfg.terrain ):
         mesh_type = 'plane'
@@ -201,7 +207,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         only_positive_rewards = True
         sigma_rew_neg = 0.02
         class scales( LeggedRobotCfg.rewards.scales ):
-            torques = -0.0005
+            torques = -0.00001
             dof_pos_limits = -10.0
             termination = -10.0
             tracking_lin_vel = 2.0
@@ -209,13 +215,13 @@ class M2FlatCfg( LeggedRobotCfg ):
             lin_vel_z = -0.05
             ang_vel_xy = -0.05
             orientation = -0.005
-            dof_vel = -0.0005
+            dof_vel = -0.0001
             dof_acc = -2.5e-7
-            base_height = -1.
+            base_height = 0.
             feet_air_time =  1.00
             collision = -0.
             feet_stumble = -0.0 
-            action_rate = -0.0001
+            action_rate = -0.001
             # stand_still = -0.5
             # stance_selective = -1.5
             feet_slip = -0.04
@@ -225,21 +231,21 @@ class M2FlatCfg( LeggedRobotCfg ):
             dof_pos = -0.0
             jump = 10.0
             estimation_bonus = 0.0
-            raibert_heuristic = -1.0
+            raibert_heuristic = -10.0
             feet_impact_vel = -0.0
             feet_clearance = -0.0
             feet_clearance_cmd = -0.0
-            feet_clearance_cmd_linear = -3.0
+            feet_clearance_cmd_linear = -30.0
             orientation = 0.0
-            orientation_control = -1.0
+            orientation_control = -5.0
             tracking_stance_width = -0.0
             tracking_stance_length = -0.0
             lin_vel_z = -0.02
             ang_vel_xy = -0.001
             feet_air_time = 0.0
             hop_symmetry = 0.0
-            tracking_contacts_shaped_force = 1.0
-            tracking_contacts_shaped_vel = 1.0
+            tracking_contacts_shaped_force = 4.0
+            tracking_contacts_shaped_vel = 4.0
             collision = -5.0
 
         penalty_level = {
