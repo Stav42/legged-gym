@@ -43,6 +43,7 @@ from pynput import keyboard
 
 import numpy as np
 import torch
+mcp = False
 
 obs_size = 48  # Adjust this based on your actual observation size
 shm_name = 'obs_shm'  # Name of the shared memory block
@@ -53,7 +54,11 @@ except FileExistsError:
 
 def write_obs_to_shm(obs):
     obs_flat = np.ravel(obs.detach().cpu()).astype(np.float64)
-    np.ndarray(obs_flat.shape, dtype=np.float64, buffer=shm.buf)[:len(obs_flat)] = obs_flat
+    if mcp:
+        np.ndarray((48, ), dtype=np.float64, buffer=shm.buf)[:obs_size] = obs_flat[:obs_size]
+    else:
+        np.ndarray(obs_flat.shape, dtype=np.float64, buffer=shm.buf)[:len(obs_flat)] = obs_flat[:obs_size]
+    
 
 def on_press(key):
     print("Key Pressed")
@@ -92,7 +97,10 @@ def on_press(key):
     update_command(key)
 
 def play(args):
+    
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
+    global mcp
+    mcp = args.mcp
     # override some parameters for testing
     env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
     env_cfg.terrain.num_rows = 5
@@ -105,15 +113,11 @@ def play(args):
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
     obs = env.get_observations()
-    print("initial Observation 1: ", obs)
     # load policy
-    train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
     # policy = ppo_runner.get_inference_policy(device=env.device)
-    print("initial Observation 2: ", obs)
 
     policy = ppo_runner.get_inference_policy(device=env.device)
-    print("initial Observation 3: ", obs)
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
         path = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'policies')
@@ -131,7 +135,7 @@ def play(args):
     plot = False
     global pause
     data_bytes = np.zeros(12).tobytes()
-    if env_cfg.asset.mcp_running:
+    if mcp:
         shm_name = 'joint_state'
         shm = shared_memory.SharedMemory( name = shm_name )
 
@@ -146,8 +150,11 @@ def play(args):
                     break
         default_joint_angles =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         # default_joint_angles =  [0.4000,  0.4000, 0.40000, 0.40000,  0.40000, 0.40000,  0.40000,  0.40000, 0.4000, 0.40000,  0.40000, 0.4000]
-        actions = policy(obs.detach())
-        if env_cfg.asset.mcp_running:
+        if mcp:
+            actions = policy(obs[:, :obs_size].detach())    
+        else:
+            actions = policy(obs.detach())
+        if mcp:
             if i>0:
                 data_bytes_2 = shm.buf[:len(data_bytes)]  # Adjust slice as needed
                 data = np.frombuffer(data_bytes_2, dtype=np.float64)  # Adjust dtype as per your data
@@ -161,11 +168,13 @@ def play(args):
             else:
                 actions = 0*actions
 
-        # print("actions: ", actions)
+        tmp = actions[:, 0:3].clone()
+        actions[:, 0:3] = actions[:, 3:6]
+        actions[:, 3:6] = tmp
+        actions[:, 0] *= -1
+        actions[:, 3] *= -1
         obs, _, rews, dones, infos = env.step(actions.detach())
         write_obs_to_shm(obs)
-        print(f"Shape of Contact Forces: {env.contact_forces.shape}")
-        print(f"Contact Forces are: {env.contact_forces[0, [5, 9, 13, 17]]}")
 
 
         obs[0, 9] = command[0]

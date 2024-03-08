@@ -70,7 +70,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         footswing_height_range = [0.03, 0.35]
         body_pitch_range = [-0.4, 0.4]
         body_roll_range = [-0.0, 0.0]
-        stance_width_range = [0.10, 0.45]
+        stance_width_range = [0.35, 0.45]
         stance_length_range = [0.35, 0.45]
 
         limit_vel_x = [-5.0, 5]
@@ -85,7 +85,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         limit_footswing_height = [0.03, 0.35]
         limit_body_pitch = [-0.4, 0]
         limit_body_roll = [-0.0, 0]
-        limit_stance_width = [0.10, 0.45]
+        limit_stance_width = [0.35, 0.45]
         limit_stance_length = [0.35, 0.45]
 
         command_curriculum = True
@@ -121,9 +121,9 @@ class M2FlatCfg( LeggedRobotCfg ):
         svan_dyn_random = True
         # curriculum = True
         terrain_length = 4
-        restitution = 0
+        restitution = -0.5
         # max_init_terrain_level = 0
-        static_friction = 20
+        static_friction = 10
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
@@ -148,10 +148,10 @@ class M2FlatCfg( LeggedRobotCfg ):
             'FR_hip_joint':100,  # [rad]
             'RR_hip_joint':100,   # [rad]
 
-            'FL_thigh_joint':45,     # [rad]
-            'RL_thigh_joint':45,   # [rad]
-            'FR_thigh_joint':45,     # [rad]
-            'RR_thigh_joint':45,  # [rad]
+            'FL_thigh_joint':60,     # [rad]
+            'RL_thigh_joint':60,   # [rad]
+            'FR_thigh_joint':60,     # [rad]
+            'RR_thigh_joint':60,  # [rad]
 
             'FL_calf_joint':45,   # [rad]
             'RL_calf_joint':45,    # [rad]
@@ -207,7 +207,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         only_positive_rewards = True
         sigma_rew_neg = 0.02
         class scales( LeggedRobotCfg.rewards.scales ):
-            torques = -0.00001
+            torques = -0.0005
             dof_pos_limits = -10.0
             termination = -10.0
             tracking_lin_vel = 2.0
@@ -215,13 +215,13 @@ class M2FlatCfg( LeggedRobotCfg ):
             lin_vel_z = -0.05
             ang_vel_xy = -0.05
             orientation = -0.005
-            dof_vel = -0.0001
+            dof_vel = -0.0005
             dof_acc = -2.5e-7
-            base_height = 0.
+            base_height = -1.
             feet_air_time =  1.00
             collision = -0.
             feet_stumble = -0.0 
-            action_rate = -0.001
+            action_rate = -0.0001
             # stand_still = -0.5
             # stance_selective = -1.5
             feet_slip = -0.04
@@ -229,23 +229,23 @@ class M2FlatCfg( LeggedRobotCfg ):
             action_smoothness_2 = -0.1
             dof_vel = -1e-4
             dof_pos = -0.0
-            jump = 10.0
+            jump = 0.0
             estimation_bonus = 0.0
-            raibert_heuristic = -10.0
+            raibert_heuristic = -3.0
             feet_impact_vel = -0.0
             feet_clearance = -0.0
             feet_clearance_cmd = -0.0
-            feet_clearance_cmd_linear = -30.0
+            # feet_clearance_cmd_linear = -3.0
             orientation = 0.0
-            orientation_control = -5.0
+            orientation_control = -1.0
             tracking_stance_width = -0.0
             tracking_stance_length = -0.0
             lin_vel_z = -0.02
             ang_vel_xy = -0.001
             feet_air_time = 0.0
             hop_symmetry = 0.0
-            tracking_contacts_shaped_force = 4.0
-            tracking_contacts_shaped_vel = 4.0
+            tracking_contacts_shaped_force = 1.0
+            tracking_contacts_shaped_vel = 1.0
             collision = -5.0
 
         penalty_level = {
