@@ -99,6 +99,9 @@ class LeggedRobot(BaseTask):
         self.actions = torch.clip(actions, -clip_actions, clip_actions).to(self.device)
         # step physics and render each frame
         self.prev_foot_velocities = self.foot_velocities.clone()
+        self.prev_base_pos = self.base_pos.clone()
+        self.prev_base_quat = self.base_quat.clone()
+        self.prev_base_lin_vel = self.base_lin_vel.clone()
         self.render()
         for _ in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions).view(self.torques.shape)
@@ -235,6 +238,10 @@ class LeggedRobot(BaseTask):
         self.reset_buf = torch.any(torch.norm(self.contact_forces[:, self.termination_contact_indices, :], dim=-1) > 1., dim=1)
         self.time_out_buf = self.episode_length_buf > self.max_episode_length # no terminal reward for time-outs
         self.reset_buf |= self.time_out_buf
+        if self.cfg.rewards.use_terminal_body_height:
+            self.body_height_buf = torch.mean(self.root_states[:, 2].unsqueeze(1) - self.measured_heights, dim=1) \
+                                   < self.cfg.rewards.terminal_body_height
+            self.reset_buf = torch.logical_or(self.body_height_buf, self.reset_buf)
 
     def reset_idx(self, env_ids):
         """ Reset some environments.
@@ -252,7 +259,9 @@ class LeggedRobot(BaseTask):
         # update curriculum
         # Map levels to (terrain + randomized dynamics)
         self._resample_commands(env_ids)
-
+        if self.cfg.domain_rand.randomize_rigids_after_start:
+            self._randomize_rigid_body_props(env_ids, self.cfg)
+            self.refresh_actor_rigid_shape_props(env_ids, self.cfg)
         # ## Update terrain Curriculum redefines the origin of the environments
         # if self.cfg.terrain.curriculum or self.cfg.terrain.svan_curriculum:
         #     self._update_terrain_curriculum(env_ids)
@@ -389,9 +398,6 @@ class LeggedRobot(BaseTask):
     def compute_observations(self):
         """ Computes observations
         """
-        print(f"Joint position: {self.dof_pos[0]}")
-        print(f"Default Joint Angles: {self.default_dof_pos}")
-        print(f"Delta pos joint: {self.dof_pos[0] - self.default_dof_pos[0]}")
 
         self.obs_buf = torch.cat((self.projected_gravity,
                                   (self.dof_pos[:, :self.num_actuated_dof] - self.default_dof_pos[:,
@@ -559,6 +565,40 @@ class LeggedRobot(BaseTask):
             self.measured_heights = self._get_heights()
         if self.cfg.domain_rand.push_robots and  (self.common_step_counter % self.cfg.domain_rand.push_interval == 0):
             self._push_robots()
+
+    def _randomize_rigid_body_props(self, env_ids, cfg):
+        if cfg.domain_rand.randomize_base_mass:
+            min_payload, max_payload = cfg.domain_rand.added_mass_range
+            # self.payloads[env_ids] = -1.0
+            self.payloads[env_ids] = torch.rand(len(env_ids), dtype=torch.float, device=self.device,
+                                                requires_grad=False) * (max_payload - min_payload) + min_payload
+        if cfg.domain_rand.randomize_com_displacement:
+            min_com_displacement, max_com_displacement = cfg.domain_rand.com_displacement_range
+            self.com_displacements[env_ids, :] = torch.rand(len(env_ids), 3, dtype=torch.float, device=self.device,
+                                                            requires_grad=False) * (
+                                                         max_com_displacement - min_com_displacement) + min_com_displacement
+
+        if cfg.domain_rand.randomize_friction:
+            min_friction, max_friction = cfg.domain_rand.friction_range
+            self.friction_coeffs[env_ids, :] = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device,
+                                                          requires_grad=False) * (
+                                                       max_friction - min_friction) + min_friction
+
+        if cfg.domain_rand.randomize_restitution:
+            min_restitution, max_restitution = cfg.domain_rand.restitution_range
+            self.restitutions[env_ids] = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device,
+                                                    requires_grad=False) * (
+                                                 max_restitution - min_restitution) + min_restitution
+
+    def refresh_actor_rigid_shape_props(self, env_ids, cfg):
+        for env_id in env_ids:
+            rigid_shape_props = self.gym.get_actor_rigid_shape_properties(self.envs[env_id], 0)
+
+            for i in range(self.num_dof):
+                rigid_shape_props[i].friction = self.friction_coeffs[env_id, 0]
+                rigid_shape_props[i].restitution = self.restitutions[env_id, 0]
+
+            self.gym.set_actor_rigid_shape_properties(self.envs[env_id], 0, rigid_shape_props)
 
     def _resample_commands(self, env_ids):
         """ Randommly select commands of some environments
