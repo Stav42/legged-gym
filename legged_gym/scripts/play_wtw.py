@@ -91,6 +91,7 @@ def update_command(key):
     global pause
     global backtick_pressed
     global gaits
+    global commands
     gaits_global = gaits
     if key == keyboard.KeyCode(char='`'):
         backtick_pressed = True
@@ -120,19 +121,23 @@ def update_command(key):
                 commands[3] -= 0.1
             elif key.char == 'p':
                 gait = gaits_global['pronking']
-                gait_tensor = torch.tensor(gait, device=commands.device, dtype=commands.dtype) 
+                gait_tensor = torch.tensor(gait) 
+                print(f"gait tensor pronking: {gait_tensor}")
                 commands[5:8] = gait_tensor
             elif key.char == 't':
                 gait = gaits_global['trotting']
-                gait_tensor = torch.tensor(gait, device=commands.device, dtype=commands.dtype) 
+                gait_tensor = torch.tensor(gait) 
                 commands[5:8] = gait_tensor
+                print(f"gait tensor trotting: {gait_tensor}")
             elif key.char == 'b':
                 gait = gaits_global['bounding']
-                gait_tensor = torch.tensor(gait, device=commands.device, dtype=commands.dtype) 
+                gait_tensor = torch.tensor(gait) 
+                print(f"gait tensor bounding: {gait_tensor}")
                 commands[5:8] = gait_tensor
             elif key.char == 'c':
                 gait = gaits_global['pacing']
-                gait_tensor = torch.tensor(gait, device=commands.device, dtype=commands.dtype) 
+                gait_tensor = torch.tensor(gait) 
+                print(f"gait tensor pacing: {gait_tensor}")
                 commands[5:8] = gait_tensor
             elif key.char == '1':
                 commands[9] += 0.1
@@ -141,8 +146,9 @@ def update_command(key):
             elif key.char == 'z':
                 pause = not pause
         except AttributeError:
+            print("Attribute Error")
             pass
-        print("Command is: ", commands[0])
+        print("Command is: ", commands)
 
 def on_press(key):
     print("Key Pressed")
@@ -195,6 +201,7 @@ def play(args):
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
     plot = False
+    global commands
     global pause
     data_bytes = np.zeros(12).tobytes()
     if env_cfg.asset.mcp_running:
@@ -228,11 +235,15 @@ def play(args):
                 actions = 0*actions
 
         # print("actions: ", actions)
+        # actions = torch.tensor([0]*12)
+        actions[0, :] = 0
+        # actions[0, [0, 9]] = -0.4*5
+        actions[0, [9]] = 0.4*5
         obs, _, rews, dones, infos = env.step(actions.detach())
         write_obs_to_shm(obs)
+        # print("Observations: ", obs)
         # print(f"Shape of Contact Forces: {env.contact_forces.shape}")
         # print(f"Contact Forces are: {env.contact_forces[0, [5, 9, 13, 17]]}")
-
 
         obs[0, 3:18] = torch.tensor(commands)
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]

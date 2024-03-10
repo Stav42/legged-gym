@@ -47,10 +47,11 @@ mcp = False
 
 obs_size = 48  # Adjust this based on your actual observation size
 shm_name = 'obs_shm'  # Name of the shared memory block
-try:
-    shm = shared_memory.SharedMemory(name=shm_name, create=True, size=obs_size * 8)  # 8 bytes per double
-except FileExistsError:
-    shm = shared_memory.SharedMemory(name=shm_name)
+if mcp:
+    try:
+        shm = shared_memory.SharedMemory(name=shm_name, create=True, size=obs_size * 8)  # 8 bytes per double
+    except FileExistsError:
+        shm = shared_memory.SharedMemory(name=shm_name)
 
 def write_obs_to_shm(obs):
     obs_flat = np.ravel(obs.detach().cpu()).astype(np.float64)

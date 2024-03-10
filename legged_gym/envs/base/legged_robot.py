@@ -389,6 +389,9 @@ class LeggedRobot(BaseTask):
     def compute_observations(self):
         """ Computes observations
         """
+        print(f"Joint position: {self.dof_pos[0]}")
+        print(f"Default Joint Angles: {self.default_dof_pos}")
+        print(f"Delta pos joint: {self.dof_pos[0] - self.default_dof_pos[0]}")
 
         self.obs_buf = torch.cat((self.projected_gravity,
                                   (self.dof_pos[:, :self.num_actuated_dof] - self.default_dof_pos[:,
