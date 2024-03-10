@@ -112,22 +112,22 @@ class M2FlatCfg( LeggedRobotCfg ):
         gaitwise_curricula = True
         
     class terrain( LeggedRobotCfg.terrain ):
-        mesh_type = 'plane'
+        # mesh_type = 'plane'
         # measure_heights = False
-        # mesh_type = "trimesh"
+        mesh_type = "trimesh"
         measure_heights = False
         svan_terrain = True
         svan_curriculum = True
         svan_dyn_random = True
         # curriculum = True
-        terrain_length = 4
+        terrain_length = 45
         restitution = -0.5
         # max_init_terrain_level = 0
         static_friction = 10
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 4
+        terrain_width = 45
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -199,6 +199,8 @@ class M2FlatCfg( LeggedRobotCfg ):
         push_robots = True
         randomize_base_mass = True
         randomize_friction = True
+        randomize_com_displacement = True
+        randomize_restitution = True
         added_mass_range = [-1., 1.]
 
     class rewards( LeggedRobotCfg.rewards ):

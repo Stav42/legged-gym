@@ -483,20 +483,20 @@ class LeggedRobot(BaseTask):
         Returns:
             [List[gymapi.RigidShapeProperties]]: Modified rigid shape properties
         """
-        if self.cfg.domain_rand.randomize_friction:
-            if env_id==0:
-                # prepare friction randomization
-                friction_range = self.cfg.domain_rand.friction_range
-                num_buckets = 64
-                bucket_ids = torch.randint(0, num_buckets, (self.num_envs, 1))
-                friction_buckets = torch_rand_float(friction_range[0], friction_range[1], (num_buckets,1), device='cpu')
-                self.friction_coeffs = friction_buckets[bucket_ids]
+        # if self.cfg.domain_rand.randomize_friction:
+        #     if env_id==0:
+        #         # prepare friction randomization
+        #         friction_range = self.cfg.domain_rand.friction_range
+        #         num_buckets = 64
+        #         bucket_ids = torch.randint(0, num_buckets, (self.num_envs, 1))
+        #         friction_buckets = torch_rand_float(friction_range[0], friction_range[1], (num_buckets,1), device='cpu')
+        #         self.friction_coeffs = friction_buckets[bucket_ids]
 
-            for s in range(len(props)):
-                props[s].friction = self.friction_coeffs[env_id]
-                props[s].torsion_friction = 0.3
-                props[s].rolling_friction = 0.3
-                props[s].friction = 0.5
+        #     for s in range(len(props)):
+        #         props[s].friction = self.friction_coeffs[env_id]
+        #         props[s].torsion_friction = 0.3
+        #         props[s].rolling_friction = 0.3
+        #         props[s].friction = 0.5
         # print(f"Length Props: {len(props)}")
         for s in range(len(props)):
             props[s].torsion_friction = 1
@@ -563,8 +563,8 @@ class LeggedRobot(BaseTask):
 
         if self.cfg.terrain.measure_heights:
             self.measured_heights = self._get_heights()
-        if self.cfg.domain_rand.push_robots and  (self.common_step_counter % self.cfg.domain_rand.push_interval == 0):
-            self._push_robots()
+        if self.cfg.domain_rand.push_robots:
+            self._push_robots(torch.arange(self.num_envs, device=self.device), self.cfg)
 
     def _randomize_rigid_body_props(self, env_ids, cfg):
         if cfg.domain_rand.randomize_base_mass:
@@ -580,6 +580,7 @@ class LeggedRobot(BaseTask):
 
         if cfg.domain_rand.randomize_friction:
             min_friction, max_friction = cfg.domain_rand.friction_range
+            # print("Shape of friction_coeffs: ", self.friction_coeffs.shape)
             self.friction_coeffs[env_ids, :] = torch.rand(len(env_ids), 1, dtype=torch.float, device=self.device,
                                                           requires_grad=False) * (
                                                        max_friction - min_friction) + min_friction
@@ -925,12 +926,18 @@ class LeggedRobot(BaseTask):
 
         return prop
 
-    def _push_robots(self):
-        """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
+
+    def _push_robots(self, env_ids, cfg):
+        """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity.
         """
-        max_vel = self.cfg.domain_rand.max_push_vel_xy
-        self.root_states[:, 7:9] = torch_rand_float(-max_vel, max_vel, (self.num_envs, 2), device=self.device) # lin vel x/y
-        self.gym.set_actor_root_state_tensor(self.sim, gymtorch.unwrap_tensor(self.root_states))
+        if cfg.domain_rand.push_robots:
+            env_ids = env_ids[self.episode_length_buf[env_ids] % int(cfg.domain_rand.push_interval) == 0]
+
+            max_vel = cfg.domain_rand.max_push_vel_xy
+            self.root_states[env_ids, 7:9] = torch_rand_float(-max_vel, max_vel, (len(env_ids), 2),
+                                                              device=self.device)  # lin vel x/y
+            self.gym.set_actor_root_state_tensor(self.sim, gymtorch.unwrap_tensor(self.root_states))
+
 
     def _update_terrain_curriculum(self, env_ids):
         """ Implements the game-inspired curriculum.
