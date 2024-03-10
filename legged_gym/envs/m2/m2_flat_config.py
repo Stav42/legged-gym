@@ -74,9 +74,9 @@ class M2FlatCfg( LeggedRobotCfg ):
         stance_length_range = [0.35, 0.45]
 
         limit_vel_x = [-5.0, 5]
-        limit_vel_y = [-0.6, 0]
+        limit_vel_y = [-0.6, 0.6]
         limit_vel_yaw = [-5.0, 5]
-        limit_body_height = [-0.25, 0]
+        limit_body_height = [-0.25, 0.]
         limit_gait_frequency = [2.0, 4.0]
         limit_gait_phase = [0.0, 1.0]
         limit_gait_offset = [0.0, 1.0]
@@ -112,22 +112,22 @@ class M2FlatCfg( LeggedRobotCfg ):
         gaitwise_curricula = True
         
     class terrain( LeggedRobotCfg.terrain ):
-        mesh_type = 'plane'
+        # mesh_type = 'plane'
         # measure_heights = False
-        # mesh_type = "trimesh"
+        mesh_type = "trimesh"
         measure_heights = False
         svan_terrain = True
         svan_curriculum = True
         svan_dyn_random = True
         # curriculum = True
-        terrain_length = 4
+        terrain_length = 45
         restitution = -0.5
         # max_init_terrain_level = 0
         static_friction = 10
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 4
+        terrain_width = 45
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -200,12 +200,43 @@ class M2FlatCfg( LeggedRobotCfg ):
         randomize_base_mass = True
         randomize_friction = True
         added_mass_range = [-1., 1.]
+        lag_timesteps = 6
+        randomize_lag_timesteps = True
+        randomize_rigids_after_start = False
+        randomize_friction_indep = False
+        randomize_friction = True
+        friction_range = [0.1, 3.0]
+        randomize_restitution = True
+        restitution_range = [0.0, 0.4]
+        randomize_base_mass = True
+        added_mass_range = [-1.0, 3.0]
+        randomize_gravity = True
+        gravity_range = [-1.0, 1.0]
+        gravity_rand_interval_s = 8.0
+        gravity_impulse_duration = 0.99
+        randomize_com_displacement = False
+        com_displacement_range = [-0.15, 0.15]
+        randomize_ground_friction = True
+        ground_friction_range = [0.0, 0.0]
+        randomize_motor_strength = True
+        motor_strength_range = [0.9, 1.1]
+        randomize_motor_offset = False
+        motor_offset_range = [-0.02, 0.02]
+        push_robots = False
+        randomize_Kp_factor = True
+        randomize_Kd_factor = True
 
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.3
         only_positive_rewards = True
         sigma_rew_neg = 0.02
+        use_terminal_foot_height = False
+        use_terminal_body_height = True
+        terminal_body_height = 0.05
+        use_terminal_roll_pitch = True
+        terminal_body_ori = 1.6
+
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0005
             dof_pos_limits = -10.0

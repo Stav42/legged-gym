@@ -39,6 +39,7 @@ class LeggedRobotCfg(BaseConfig):
         env_spacing = 3.  # not used with heightfields/trimeshes 
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
+        num_observation_history = 30
 
         observe_vel = True
         observe_only_ang_vel = False
@@ -76,6 +77,7 @@ class LeggedRobotCfg(BaseConfig):
         terrain_proportions = [0.1, 0.1, 0.35, 0.25, 0.2]
         # trimesh only:
         slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
+        yaw_init_range = 3.14
 
     class commands:
         curriculum = False
@@ -167,7 +169,7 @@ class LeggedRobotCfg(BaseConfig):
         stance_length_range = [0.0, 0.01]
 
         exclusive_phase_offset = True
-        binary_phases = False
+        binary_phases = True
         pacing_offset = False
         balance_gait_distribution = True
         gaitwise_curricula = True
@@ -226,13 +228,33 @@ class LeggedRobotCfg(BaseConfig):
         thickness = 0.01
 
     class domain_rand:
+        rand_interval_s = 4
+        randomize_rigids_after_start = True
         randomize_friction = True
-        friction_range = [0.5, 1.25]
+        friction_range = [0.5, 1.25]  # increase range
+        randomize_restitution = False
+        restitution_range = [0, 1.0]
         randomize_base_mass = False
+        # add link masses, increase range, randomize inertia, randomize joint properties
         added_mass_range = [-1., 1.]
+        randomize_com_displacement = False
+        # add link masses, increase range, randomize inertia, randomize joint properties
+        com_displacement_range = [-0.15, 0.15]
+        randomize_motor_strength = False
+        motor_strength_range = [0.9, 1.1]
+        randomize_Kp_factor = False
+        Kp_factor_range = [0.8, 1.3]
+        randomize_Kd_factor = False
+        Kd_factor_range = [0.5, 1.5]
+        gravity_rand_interval_s = 7
+        gravity_impulse_duration = 1.0
+        randomize_gravity = False
+        gravity_range = [-1.0, 1.0]
         push_robots = True
         push_interval_s = 15
         max_push_vel_xy = 1.
+        randomize_lag_timesteps = True
+        lag_timesteps = 6
 
     class rewards:
         class scales:
@@ -314,9 +336,9 @@ class LeggedRobotCfg(BaseConfig):
             depth_image = 1.0            
 
         clip_observations = 100.
-        clip_actions = 100.
-        friction_range = [0.05, 4.5]
-        ground_friction_range = [0.05, 4.5]
+        clip_actions = 10.
+        friction_range = [0.05, 2.5]
+        ground_friction_range = [0.05, 20.5]
         restitution_range = [0, 1.0]
         added_mass_range = [-1., 3.]
         com_displacement_range = [-0.1, 0.1]
