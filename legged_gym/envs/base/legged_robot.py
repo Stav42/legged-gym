@@ -264,8 +264,8 @@ class LeggedRobot(BaseTask):
             self._randomize_rigid_body_props(env_ids, self.cfg)
             self.refresh_actor_rigid_shape_props(env_ids, self.cfg)
         # ## Update terrain Curriculum redefines the origin of the environments
-        # if self.cfg.terrain.curriculum or self.cfg.terrain.svan_curriculum:
-        #     self._update_terrain_curriculum(env_ids)
+        if self.cfg.terrain.curriculum or self.cfg.terrain.svan_curriculum:
+            self._update_terrain_curriculum(env_ids)
 
         # # avoid updating command curriculum at each step since the maximum command is common to all envs
         # if self.cfg.commands.curriculum and (self.common_step_counter % self.max_episode_length==0):
@@ -637,7 +637,7 @@ class LeggedRobot(BaseTask):
         # if self.cfg.domain_rand.push_robots and  (self.common_step_counter % self.cfg.domain_rand.push_interval == 0):
         #     self._push_robots()
         
-        # self._push_robots(torch.arange(self.num_envs, device=self.device), self.cfg)
+        self._push_robots(torch.arange(self.num_envs, device=self.device), self.cfg)
 
         # randomize dof properties
         # env_ids = (self.episode_length_buf % int(self.cfg.domain_rand.rand_interval) == 0).nonzero(

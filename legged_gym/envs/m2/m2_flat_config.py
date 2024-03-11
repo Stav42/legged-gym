@@ -112,9 +112,9 @@ class M2FlatCfg( LeggedRobotCfg ):
         gaitwise_curricula = True
         
     class terrain( LeggedRobotCfg.terrain ):
-        # mesh_type = 'plane'
+        mesh_type = 'plane'
         # measure_heights = False
-        mesh_type = "trimesh"
+        # mesh_type = "trimesh"
         measure_heights = False
         svan_terrain = True
         svan_curriculum = True
@@ -202,8 +202,8 @@ class M2FlatCfg( LeggedRobotCfg ):
         added_mass_range = [-1., 1.]
         lag_timesteps = 6
         randomize_lag_timesteps = True
-        randomize_rigids_after_start = False
-        randomize_friction_indep = False
+        randomize_rigids_after_start = True
+        randomize_friction_indep = True
         randomize_friction = True
         friction_range = [0.1, 3.0]
         randomize_restitution = True
@@ -214,15 +214,15 @@ class M2FlatCfg( LeggedRobotCfg ):
         gravity_range = [-1.0, 1.0]
         gravity_rand_interval_s = 8.0
         gravity_impulse_duration = 0.99
-        randomize_com_displacement = False
+        randomize_com_displacement = True
         com_displacement_range = [-0.15, 0.15]
         randomize_ground_friction = True
         ground_friction_range = [0.0, 0.0]
         randomize_motor_strength = True
         motor_strength_range = [0.9, 1.1]
-        randomize_motor_offset = False
+        randomize_motor_offset = True
         motor_offset_range = [-0.02, 0.02]
-        push_robots = False
+        push_robots = True
         randomize_Kp_factor = True
         randomize_Kd_factor = True
 
