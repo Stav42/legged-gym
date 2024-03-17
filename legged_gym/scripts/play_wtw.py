@@ -234,14 +234,14 @@ def play(args):
             else:
                 actions = 0*actions
 
-        # print("actions: ", actions)
+        print("actions: ", actions)
         # actions = torch.tensor([0]*12)
         actions[0, :] = 0
         # actions[0, [0, 9]] = -0.4*5
         actions[0, [9]] = 0.4*5
         obs, _, rews, dones, infos = env.step(actions.detach())
         write_obs_to_shm(obs)
-        # print("Observations: ", obs)
+        print("Observations: ", obs)
         # print(f"Shape of Contact Forces: {env.contact_forces.shape}")
         # print(f"Contact Forces are: {env.contact_forces[0, [5, 9, 13, 17]]}")
 

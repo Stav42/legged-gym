@@ -44,7 +44,6 @@ from typing import Tuple, Dict
 from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs.base.base_task import BaseTask
 from legged_gym.utils.terrain import Terrain
-from legged_gym.utils.svan_terrain import Svan_Terrain
 from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float
 from legged_gym.utils.helpers import class_to_dict
 from .legged_robot_config import LeggedRobotCfg
@@ -464,8 +463,8 @@ class LeggedRobot(BaseTask):
             self._create_trimesh()
         elif mesh_type is not None:
             raise ValueError("Terrain mesh type not recognised. Allowed types are [None, plane, heightfield, trimesh]")
-        if self.svan_terrain:
-            self.terrain = Svan_Terrain(self.num_envs)
+        # if self.svan_terrain:
+        #     self.terrain = Svan_Terrain(self.num_envs)
 
         self._create_envs()
 
@@ -607,7 +606,6 @@ class LeggedRobot(BaseTask):
             for i in range(self.num_dof):
                 rigid_shape_props[i].friction = self.friction_coeffs[env_id, 0]
                 rigid_shape_props[i].restitution = self.restitutions[env_id, 0]
-
             self.gym.set_actor_rigid_shape_properties(self.envs[env_id], 0, rigid_shape_props)
 
     def _process_rigid_body_props(self, props, env_id):
@@ -640,9 +638,9 @@ class LeggedRobot(BaseTask):
         self._push_robots(torch.arange(self.num_envs, device=self.device), self.cfg)
 
         # randomize dof properties
-        # env_ids = (self.episode_length_buf % int(self.cfg.domain_rand.rand_interval) == 0).nonzero(
-            # as_tuple=False).flatten()
-        # self._randomize_dof_props(env_ids, self.cfg)
+        env_ids = (self.episode_length_buf % int(self.cfg.domain_rand.rand_interval) == 0).nonzero(
+            as_tuple=False).flatten()
+        self._randomize_dof_props(env_ids, self.cfg)
 
         if self.common_step_counter % int(self.cfg.domain_rand.gravity_rand_interval) == 0:
             self._randomize_gravity()
@@ -1053,7 +1051,7 @@ class LeggedRobot(BaseTask):
         L1 = [item[0] for item in values]
         L2 = [item[1] for item in values]
         self.env_origins[env_ids] = self.terrain_origins[L1, L2]
-        first_two_elements = torch.rand(len(env_ids), 2) * 30 - 15  # Scale to range [-10, 10]
+        first_two_elements = torch.rand(len(env_ids), 2) * 60 - 30  # Scale to range [-10, 10]
         # Create an array of zeros for the third element
         third_element = torch.zeros(len(env_ids), 1)
         # Concatenate to form the final 4000x3 matrix
