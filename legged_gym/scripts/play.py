@@ -36,6 +36,7 @@ from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
 from isaacgym import gymapi
 from isaacgym import gymtorch
+import copy
 
 from pynput import keyboard
 
@@ -151,26 +152,46 @@ def play(args):
             if i>0:
                 data_bytes_2 = shm.buf[:len(data_bytes)]  # Adjust slice as needed
                 data = np.frombuffer(data_bytes_2, dtype=np.float64)  # Adjust dtype as per your data
+                # print("data: ", data)
                 actions = actions
-                for idx in range(12):
-                    if idx == 1 or idx == 2 or idx == 6 or idx == 9 or idx == 10 or idx == 11:
-                        actions[0, idx] = 5 * (-float(data[idx]) - float(default_joint_angles[idx]))
-                    else:    
-                        # actions[0, idx] = float(data[idx]) - float(default_joint_angles[idx])   
-                        actions[0, idx] = 5 * (float(data[idx]) - float(default_joint_angles[idx]))
+                # data[0:3] = tmp[3:6]
+                # data[3:6] = tmp[0:3]
+                data[1:3] *= -1
+                data[9:12] *= -1
+                data[6] *= -1
+                tmp = copy.deepcopy(data)
+                # print("tmp: ", tmp)
+                # tmp[0:3] = abs(data[3:6])*np.sign(data[3:6])
+                # tmp[3:6] = abs(data[0:3])*np.sign(data[0:3])
+                # tmp[6:12] = abs(data[6:12])*np.sign(data[6:12])
+                tmp[:6] = tmp[:6].reshape((2, 3))[::-1].flatten()
+                # print("tmp: ", tmp)
+                
+                # data[0:3] = tmp[3:6]
+                # data[3:6] = tmp[0:3]
+                # print("data_check: ", data)
+
+                # for idx in range(12):
+                actions[0, :] = 5 * torch.tensor(tmp - default_joint_angles)
+                # print("actions: ", actions)
+                # for idx in range(12):
+                #     if idx == 1 or idx == 2 or idx == 6 or idx == 9 or idx == 10 or idx == 11:
+                #         actions[0, idx] = 5 * (-float(data[idx]) - float(default_joint_angles[idx]))
+                #     else:    
+                #         actions[0, idx] = 5 * (float(data[idx]) - float(default_joint_angles[idx]))
             else:
                 actions = 0*actions
 
         # print("actions: ", actions)
         obs, _, rews, dones, infos = env.step(actions.detach())
         write_obs_to_shm(obs)
-        print(f"Shape of Contact Forces: {env.contact_forces.shape}")
-        print(f"Contact Forces are: {env.contact_forces[0, [5, 9, 13, 17]]}")
+        # print(f"Shape of Contact Forces: {env.contact_forces.shape}")
+        # print(f"Contact Forces are: {env.contact_forces[0, [5, 9, 13, 17]]}")
 
 
-        obs[0, 9] = command[0]
-        obs[0, 10] = command[1]
-        obs[0, 11] = command[2]
+        obs[0, 3] = command[0]
+        obs[0, 4] = command[1]
+        obs[0, 5] = command[2]
         action_init =  [0.1000,  0.8000, -1.5000, -0.1000,  0.8000, -1.5000,  0.1000,  1.0000, -1.5000, -0.1000,  1.0000, -1.5000]
         action_list = [float(act) for itr, act in enumerate(actions.detach()[0, :])]
         obs_list = [float(act) for act in obs.detach()[0, :]]

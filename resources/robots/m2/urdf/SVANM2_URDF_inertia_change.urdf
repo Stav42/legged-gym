@@ -164,7 +164,7 @@
       link="FR_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
+    <limit effort="35" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -207,7 +207,7 @@
       link="FR_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
+    <limit effort="35" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
   </joint>
   <joint name="fr_dummy_j" type="fixed" dont_collapse="true">
     <origin
@@ -301,7 +301,7 @@
       link="FL_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
+    <limit effort="35" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -344,7 +344,7 @@
       link="FL_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
+    <limit effort="35" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
 
   </joint>
   <joint name="FL_foot_fixed" type="fixed" dont_collapse="true">
@@ -440,7 +440,7 @@
       link="RR_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
+    <limit effort="35" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -483,7 +483,7 @@
       link="RR_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
+    <limit effort="35" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
 
   </joint>
     <joint name="RR_foot_fixed" type="fixed" dont_collapse="true">
@@ -578,7 +578,7 @@
       link="RL_thigh" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
+    <limit effort="35" lower="-4.0471975512" upper="4.18879020479" velocity="10.6"/>
 
   </joint>
   <link
@@ -621,7 +621,7 @@
       link="RL_calf" />
     <axis
       xyz="0 1 0" />
-    <limit effort="55" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
+    <limit effort="35" lower="-4.69653369433" upper="4.916297857297" velocity="10.6"/>
 
   </joint>
 

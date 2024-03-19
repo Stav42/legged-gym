@@ -6,10 +6,15 @@ import numpy as np
 
 joint_pos = np.zeros(12)
 
+curr = 0
+
 def get_position_data(msg):
     global joint_pos
+    global curr
     joint_pos = np.array(msg.position, dtype = np.float64)
-    # print("Incoming Data: ", joint_pos)
+    # print(curr)
+    curr+=1
+    # print("Incoming Data: ", joint_pos, "curr ", curr)
 
 def publisher():
     # Initialize ROS node
@@ -25,7 +30,8 @@ def publisher():
     shm = shared_memory.SharedMemory(create=True, name=shm_name, size=shm_size)
     x = np.zeros(12, dtype=np.float64)
     data_bytes = x.tobytes()
-
+    current_mean = 0 
+    prev_val = []
     try:
         while not rospy.is_shutdown():
             # Read data from shared memory
@@ -34,10 +40,13 @@ def publisher():
             
             data_bytes_2 = shm.buf[:len(data_bytes)]  # Adjust slice as needed
             data = np.frombuffer(data_bytes_2, dtype=np.float64)  # Adjust dtype as per your data
+            current_mean = np.mean(data)
+            prev_val = data
             # print("Data Value: ", data)
+            
             # Create a message and publish it
-            msg = Float32MultiArray(data=data)
-            pub.publish(msg)
+            # msg = Float32MultiArray(data=data)
+            # pub.publish(msg)
 
             rate.sleep()
     finally:
