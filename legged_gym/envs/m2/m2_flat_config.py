@@ -56,6 +56,7 @@ class M2FlatCfg( LeggedRobotCfg ):
         stance_int = 400
         stance_dur = 225
         stance_env_num_den = 192
+        pacing_offset = False
     
     class terrain( LeggedRobotCfg.terrain ):
         # mesh_type = 'plane'
@@ -66,14 +67,14 @@ class M2FlatCfg( LeggedRobotCfg ):
         svan_curriculum = True
         svan_dyn_random = True
         # curriculum = True
-        terrain_length = 4
+        terrain_length = 45
         restitution = 0
         # max_init_terrain_level = 0
         static_friction = 20
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 4
+        terrain_width = 45
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -151,19 +152,25 @@ class M2FlatCfg( LeggedRobotCfg ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.3
         only_positive_rewards = True
+        gait_force_sigma = 100.
+        gait_vel_sigma = 10
+        # base_height_target = 1.
+        max_contact_force = 100. # forces above this value are penalized
+        sigma_rew_neg = 0.02
+        kappa_gait_probs = 0.07
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0005
             dof_pos_limits = -0.0
             termination = -10.0
-            tracking_lin_vel = 2.0
-            tracking_ang_vel = 1.5
-            lin_vel_z = -0.05
+            tracking_lin_vel = 3.0
+            tracking_ang_vel = 2.5
+            lin_vel_z = -0.15
             ang_vel_xy = -0.05
             orientation = -0.05
             dof_vel = -0.0005
             dof_acc = -2.5e-7
             base_height = -0.5
-            feet_air_time =  1.00
+            # feet_air_time =  1.00
             collision = -0.
             dof_vel_limits = -1.0
             dof_pos_limits = -1.0
@@ -172,7 +179,10 @@ class M2FlatCfg( LeggedRobotCfg ):
             action_rate = -0.0
             # stand_still = -0.5
             stance_selective = -1.5
-        
+            tracking_contacts_shaped_force = 10.0
+            tracking_contacts_shaped_vel = 10.0
+            feet_clearance_cmd_linear = -11.0
+
         penalty_level = {
             'action_rate_selective': 0,
             'orientation_selective': 0,
