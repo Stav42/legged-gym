@@ -120,13 +120,32 @@ class LeggedRobotCfg(BaseConfig):
         thickness = 0.01
 
     class domain_rand:
+        rand_interval_s = 4
+        randomize_rigids_after_start = True
         randomize_friction = True
+        randomize_restitution = False
+        restitution_range = [0, 1.0]
         friction_range = [0.5, 1.25]
         randomize_base_mass = False
         added_mass_range = [-1., 1.]
+        randomize_com_displacement = False
+        # add link masses, increase range, randomize inertia, randomize joint properties
+        com_displacement_range = [-0.15, 0.15]
+        randomize_motor_strength = False
+        motor_strength_range = [0.9, 1.1]
+        randomize_Kp_factor = False
+        Kp_factor_range = [0.8, 1.3]
+        randomize_Kd_factor = False
+        Kd_factor_range = [0.5, 1.5]
+        gravity_rand_interval_s = 7
+        gravity_impulse_duration = 1.0
+        randomize_gravity = False
+        gravity_range = [-1.0, 1.0]
         push_robots = True
         push_interval_s = 15
         max_push_vel_xy = 1.
+        randomize_lag_timesteps = True
+        lag_timesteps = 6
 
     class rewards:
         class scales:
@@ -163,6 +182,23 @@ class LeggedRobotCfg(BaseConfig):
             height_measurements = 5.0
         clip_observations = 100.
         clip_actions = 100.
+        friction_range = [0.05, 2.5]
+        ground_friction_range = [0.05, 20.5]
+        restitution_range = [0, 1.0]
+        added_mass_range = [-1., 3.]
+        com_displacement_range = [-0.1, 0.1]
+        motor_strength_range = [0.9, 1.1]
+        motor_offset_range = [-0.05, 0.05]
+        Kp_factor_range = [0.8, 1.3]
+        Kd_factor_range = [0.5, 1.5]
+        joint_friction_range = [0.0, 0.7]
+        contact_force_range = [0.0, 50.0]
+        contact_state_range = [0.0, 1.0]
+        body_velocity_range = [-6.0, 6.0]
+        foot_height_range = [0.0, 0.15]
+        body_height_range = [0.0, 0.60]
+        gravity_range = [-1.0, 1.0]
+        motion = [-0.01, 0.01]
 
     class noise:
         add_noise = True
