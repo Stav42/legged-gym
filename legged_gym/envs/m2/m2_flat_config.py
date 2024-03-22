@@ -64,16 +64,16 @@ class M2FlatCfg( LeggedRobotCfg ):
         measure_heights = False
         svan_terrain = True
         svan_curriculum = True
-        svan_dyn_random = True
+        svan_dyn_random = False
         # curriculum = True
-        terrain_length = 4
+        terrain_length = 45
         restitution = 0
         # max_init_terrain_level = 0
         static_friction = 20
         dynamic_friction = 1
         max_terrain_level = 12
         visualize_force = False
-        terrain_width = 4
+        terrain_width = 45
         num_rows = 1 # number of terrain rows (levels)
         num_cols = 4 # number of terrain cols (types)
 
@@ -145,7 +145,32 @@ class M2FlatCfg( LeggedRobotCfg ):
         push_robots = True
         randomize_base_mass = True
         randomize_friction = True
-        added_mass_range = [-1., 1.]
+        added_mass_range = [-0.5, 0.5]
+        lag_timesteps = 6
+        randomize_lag_timesteps = False
+        randomize_rigids_after_start = False
+        randomize_friction_indep = False
+        randomize_friction = False
+        friction_range = [0.9, 3.0]
+        randomize_restitution = False
+        restitution_range = [0.0, 0.2]
+        randomize_base_mass = False
+        # added_mass_range = [-1.0, 3.0]
+        randomize_gravity = False
+        gravity_range = [0.8, 1.0]
+        gravity_rand_interval_s = 8.0
+        gravity_impulse_duration = 0.99
+        randomize_com_displacement = False
+        com_displacement_range = [-0.15, 0.15]
+        randomize_ground_friction = False
+        ground_friction_range = [15.0, 20.0]
+        randomize_motor_strength = False
+        motor_strength_range = [0.9, 1.1]
+        randomize_motor_offset = False
+        motor_offset_range = [-0.02, 0.02]
+        push_robots = True
+        randomize_Kp_factor = False
+        randomize_Kd_factor = False
 
     class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
@@ -153,10 +178,10 @@ class M2FlatCfg( LeggedRobotCfg ):
         only_positive_rewards = True
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0005
-            dof_pos_limits = -0.0
+            # dof_pos_limits = -10.0
             termination = -10.0
             tracking_lin_vel = 2.0
-            tracking_ang_vel = 1.5
+            tracking_ang_vel = 2.0
             lin_vel_z = -0.05
             ang_vel_xy = -0.05
             orientation = -0.05
